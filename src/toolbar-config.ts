@@ -25,19 +25,19 @@ export const writerToolbar: ToolbarGroup[] = [
   {
     id: 'undo-redo',
     items: [
-      { id: 'undo', type: 'button', command: '.uno:Undo', icon: '/images/lc_undo.svg', label: 'Undo' },
-      { id: 'redo', type: 'button', command: '.uno:Redo', icon: '/images/lc_redo.svg', label: 'Redo' },
+      { id: 'undo', type: 'button', command: '.uno:Undo', icon: 'lc_undo.svg', label: 'Undo' },
+      { id: 'redo', type: 'button', command: '.uno:Redo', icon: 'lc_redo.svg', label: 'Redo' },
     ],
   },
   // --- 2. Clipboard ---
   {
     id: 'clipboard',
     items: [
-      { id: 'paste', type: 'button', command: '.uno:Paste', icon: '/images/lc_paste.svg', label: 'Paste' },
-      { id: 'cut', type: 'button', command: '.uno:Cut', icon: '/images/lc_cut.svg', label: 'Cut' },
-      { id: 'copy', type: 'button', command: '.uno:Copy', icon: '/images/lc_copy.svg', label: 'Copy' },
-      { id: 'format-paintbrush', type: 'toggle', command: '.uno:FormatPaintbrush', icon: '/images/lc_formatpaintbrush.svg', label: 'Clone Formatting' },
-      { id: 'reset-attributes', type: 'button', command: '.uno:ResetAttributes', icon: '/images/lc_resetattributes.svg', label: 'Clear Formatting' },
+      { id: 'paste', type: 'button', command: '.uno:Paste', icon: 'lc_paste.svg', label: 'Paste' },
+      { id: 'cut', type: 'button', command: '.uno:Cut', icon: 'lc_cut.svg', label: 'Cut' },
+      { id: 'copy', type: 'button', command: '.uno:Copy', icon: 'lc_copy.svg', label: 'Copy' },
+      { id: 'format-paintbrush', type: 'toggle', command: '.uno:FormatPaintbrush', icon: 'lc_formatpaintbrush.svg', label: 'Clone Formatting' },
+      { id: 'reset-attributes', type: 'button', command: '.uno:ResetAttributes', icon: 'lc_resetattributes.svg', label: 'Clear Formatting' },
     ],
   },
   // --- 3. Font ---
@@ -58,65 +58,65 @@ export const writerToolbar: ToolbarGroup[] = [
         label: 'Font Size',
         options: FONT_SIZES.map((s) => ({ value: String(s), label: String(s) })),
       },
-      { id: 'grow', type: 'button', command: '.uno:Grow', icon: '/images/lc_grow.svg', label: 'Increase Font Size' },
-      { id: 'shrink', type: 'button', command: '.uno:Shrink', icon: '/images/lc_shrink.svg', label: 'Decrease Font Size' },
+      { id: 'grow', type: 'button', command: '.uno:Grow', icon: 'lc_grow.svg', label: 'Increase Font Size' },
+      { id: 'shrink', type: 'button', command: '.uno:Shrink', icon: 'lc_shrink.svg', label: 'Decrease Font Size' },
     ],
   },
   // --- 4. Text formatting ---
   {
     id: 'formatting',
     items: [
-      { id: 'bold', type: 'toggle', command: '.uno:Bold', icon: '/images/lc_bold.svg', label: 'Bold' },
-      { id: 'italic', type: 'toggle', command: '.uno:Italic', icon: '/images/lc_italic.svg', label: 'Italic' },
-      { id: 'underline', type: 'toggle', command: '.uno:Underline', icon: '/images/lc_underline.svg', label: 'Underline' },
-      { id: 'strikeout', type: 'toggle', command: '.uno:Strikeout', icon: '/images/lc_strikeout.svg', label: 'Strikethrough' },
-      { id: 'subscript', type: 'toggle', command: '.uno:SubScript', icon: '/images/lc_subscript.svg', label: 'Subscript' },
-      { id: 'superscript', type: 'toggle', command: '.uno:SuperScript', icon: '/images/lc_superscript.svg', label: 'Superscript' },
-      { id: 'spacing', type: 'button', command: '.uno:Spacing', icon: '/images/lc_spacing.svg', label: 'Character Spacing' },
-      { id: 'highlight', type: 'button', command: '.uno:CharBackColor', icon: '/images/lc_backcolor.svg', label: 'Highlighting' },
-      { id: 'font-color', type: 'button', command: '.uno:Color', icon: '/images/lc_fontcolor.svg', label: 'Font Color' },
+      { id: 'bold', type: 'toggle', command: '.uno:Bold', icon: 'lc_bold.svg', label: 'Bold' },
+      { id: 'italic', type: 'toggle', command: '.uno:Italic', icon: 'lc_italic.svg', label: 'Italic' },
+      { id: 'underline', type: 'toggle', command: '.uno:Underline', icon: 'lc_underline.svg', label: 'Underline' },
+      { id: 'strikeout', type: 'toggle', command: '.uno:Strikeout', icon: 'lc_strikeout.svg', label: 'Strikethrough' },
+      { id: 'subscript', type: 'toggle', command: '.uno:SubScript', icon: 'lc_subscript.svg', label: 'Subscript' },
+      { id: 'superscript', type: 'toggle', command: '.uno:SuperScript', icon: 'lc_superscript.svg', label: 'Superscript' },
+      { id: 'spacing', type: 'button', command: '.uno:Spacing', icon: 'lc_spacing.svg', label: 'Character Spacing' },
+      { id: 'highlight', type: 'button', command: '.uno:CharBackColor', icon: 'lc_backcolor.svg', label: 'Highlighting' },
+      { id: 'font-color', type: 'button', command: '.uno:Color', icon: 'lc_fontcolor.svg', label: 'Font Color' },
     ],
   },
   // --- 5. Paragraph ---
   {
     id: 'paragraph',
     items: [
-      { id: 'bullet-list', type: 'toggle', command: '.uno:DefaultBullet', icon: '/images/lc_defaultbullet.svg', label: 'Bulleted List' },
-      { id: 'number-list', type: 'toggle', command: '.uno:DefaultNumbering', icon: '/images/lc_defaultnumbering.svg', label: 'Numbered List' },
-      { id: 'indent-inc', type: 'button', command: '.uno:IncrementIndent', icon: '/images/lc_incrementindent.svg', label: 'Increase Indent' },
-      { id: 'indent-dec', type: 'button', command: '.uno:DecrementIndent', icon: '/images/lc_decrementindent.svg', label: 'Decrease Indent' },
-      { id: 'control-codes', type: 'toggle', command: '.uno:ControlCodes', icon: '/images/lc_controlcodes.svg', label: 'Formatting Marks' },
-      { id: 'para-ltr', type: 'toggle', command: '.uno:ParaLeftToRight', icon: '/images/lc_paralefttoright.svg', label: 'Left-to-Right' },
-      { id: 'para-rtl', type: 'toggle', command: '.uno:ParaRightToLeft', icon: '/images/lc_pararighttoleft.svg', label: 'Right-to-Left' },
+      { id: 'bullet-list', type: 'toggle', command: '.uno:DefaultBullet', icon: 'lc_defaultbullet.svg', label: 'Bulleted List' },
+      { id: 'number-list', type: 'toggle', command: '.uno:DefaultNumbering', icon: 'lc_defaultnumbering.svg', label: 'Numbered List' },
+      { id: 'indent-inc', type: 'button', command: '.uno:IncrementIndent', icon: 'lc_incrementindent.svg', label: 'Increase Indent' },
+      { id: 'indent-dec', type: 'button', command: '.uno:DecrementIndent', icon: 'lc_decrementindent.svg', label: 'Decrease Indent' },
+      { id: 'control-codes', type: 'toggle', command: '.uno:ControlCodes', icon: 'lc_controlcodes.svg', label: 'Formatting Marks' },
+      { id: 'para-ltr', type: 'toggle', command: '.uno:ParaLeftToRight', icon: 'lc_paralefttoright.svg', label: 'Left-to-Right' },
+      { id: 'para-rtl', type: 'toggle', command: '.uno:ParaRightToLeft', icon: 'lc_pararighttoleft.svg', label: 'Right-to-Left' },
     ],
   },
   // --- 6. Alignment ---
   {
     id: 'alignment',
     items: [
-      { id: 'left-para', type: 'toggle', command: '.uno:LeftPara', icon: '/images/lc_leftpara.svg', label: 'Align Left' },
-      { id: 'center-para', type: 'toggle', command: '.uno:CenterPara', icon: '/images/lc_centerpara.svg', label: 'Align Center' },
-      { id: 'right-para', type: 'toggle', command: '.uno:RightPara', icon: '/images/lc_rightpara.svg', label: 'Align Right' },
-      { id: 'justify-para', type: 'toggle', command: '.uno:JustifyPara', icon: '/images/lc_justifypara.svg', label: 'Justify' },
-      { id: 'line-spacing', type: 'button', command: '.uno:LineSpacing', icon: '/images/lc_linespacing.svg', label: 'Line Spacing' },
-      { id: 'background-color', type: 'button', command: '.uno:BackgroundColor', icon: '/images/lc_backgroundcolor.svg', label: 'Paragraph Background' },
+      { id: 'left-para', type: 'toggle', command: '.uno:LeftPara', icon: 'lc_leftpara.svg', label: 'Align Left' },
+      { id: 'center-para', type: 'toggle', command: '.uno:CenterPara', icon: 'lc_centerpara.svg', label: 'Align Center' },
+      { id: 'right-para', type: 'toggle', command: '.uno:RightPara', icon: 'lc_rightpara.svg', label: 'Align Right' },
+      { id: 'justify-para', type: 'toggle', command: '.uno:JustifyPara', icon: 'lc_justifypara.svg', label: 'Justify' },
+      { id: 'line-spacing', type: 'button', command: '.uno:LineSpacing', icon: 'lc_linespacing.svg', label: 'Line Spacing' },
+      { id: 'background-color', type: 'button', command: '.uno:BackgroundColor', icon: 'lc_backgroundcolor.svg', label: 'Paragraph Background' },
     ],
   },
   // --- 7. Insert ---
   {
     id: 'insert',
     items: [
-      { id: 'insert-table', type: 'button', command: '.uno:InsertTable', icon: '/images/lc_inserttable.svg', label: 'Insert Table' },
-      { id: 'insert-graphic', type: 'button', command: '.uno:InsertGraphic', icon: '/images/lc_insertgraphic.svg', label: 'Insert Image' },
-      { id: 'insert-pagebreak', type: 'button', command: '.uno:InsertPagebreak', icon: '/images/lc_insertpagebreak.svg', label: 'Page Break' },
-      { id: 'insert-symbol', type: 'button', command: '.uno:InsertSymbol', icon: '/images/lc_insertsymbol.svg', label: 'Special Character' },
+      { id: 'insert-table', type: 'button', command: '.uno:InsertTable', icon: 'lc_inserttable.svg', label: 'Insert Table' },
+      { id: 'insert-graphic', type: 'button', command: '.uno:InsertGraphic', icon: 'lc_insertgraphic.svg', label: 'Insert Image' },
+      { id: 'insert-pagebreak', type: 'button', command: '.uno:InsertPagebreak', icon: 'lc_insertpagebreak.svg', label: 'Page Break' },
+      { id: 'insert-symbol', type: 'button', command: '.uno:InsertSymbol', icon: 'lc_insertsymbol.svg', label: 'Special Character' },
     ],
   },
   // --- 8. Search ---
   {
     id: 'search',
     items: [
-      { id: 'search-dialog', type: 'button', command: '.uno:SearchDialog', icon: '/images/lc_searchdialog.svg', label: 'Find & Replace' },
+      { id: 'search-dialog', type: 'button', command: '.uno:SearchDialog', icon: 'lc_searchdialog.svg', label: 'Find & Replace' },
     ],
   },
 ];

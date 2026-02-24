@@ -1,133 +1,131 @@
-/* Collabora Online-inspired styling for libreoffice-web */
+/* Collabora Online-inspired styling for the LibreOfficeEditor component.
+   All selectors are scoped under .lo-editor (no global resets). */
 
-:root {
+.lo-editor {
   /* Colors from Collabora Online's color-palette.css */
-  --color-main-text: #333;
-  --color-text-dark: #333;
-  --color-text-darker: #000;
-  --color-text-lighter: #696969;
+  --lo-color-main-text: #333;
+  --lo-color-text-dark: #333;
+  --lo-color-text-darker: #000;
+  --lo-color-text-lighter: #696969;
 
-  --color-bg: #F8F9FA;
-  --color-bg-light: #fff;
-  --color-bg-hover: #e8e8e8;
-  --color-bg-selected: rgba(3, 105, 163, 0.1);
-  --color-bg-darker: #c0bfbc;
+  --lo-color-bg: #F8F9FA;
+  --lo-color-bg-light: #fff;
+  --lo-color-bg-hover: #e8e8e8;
+  --lo-color-bg-selected: rgba(3, 105, 163, 0.1);
+  --lo-color-bg-darker: #c0bfbc;
 
-  --color-border: #e1dfdd;
-  --color-btn-border: #b6b6b6;
-  --color-selected-border: rgb(3, 105, 163);
+  --lo-color-border: #e1dfdd;
+  --lo-color-btn-border: #b6b6b6;
+  --lo-color-selected-border: rgb(3, 105, 163);
 
   /* Document type accent (Writer = blue) */
-  --doc-type: 3, 105, 163;
+  --lo-doc-type: 3, 105, 163;
 
   /* Sizing */
-  --btn-size: 28px;
-  --btn-padding: 2px;
-  --btn-img-size: calc(var(--btn-size) - var(--btn-padding) * 2);
-  --border-radius: 4px;
+  --lo-btn-size: 28px;
+  --lo-btn-padding: 2px;
+  --lo-btn-img-size: calc(var(--lo-btn-size) - var(--lo-btn-padding) * 2);
+  --lo-border-radius: 4px;
 
   /* Layout heights */
-  --nav-height: 32px;
-  --toolbar-height: 36px;
-  --statusbar-height: 28px;
-}
+  --lo-nav-height: 32px;
+  --lo-toolbar-height: 36px;
+  --lo-statusbar-height: 28px;
 
-* {
-  margin: 0;
-  padding: 0;
+  /* Component root layout */
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  font-family: system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+  font-size: 13px;
+  color: var(--lo-color-main-text);
+  background: var(--lo-color-bg);
+  overflow: hidden;
   box-sizing: border-box;
 }
 
-body {
-  font-family: system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
-  font-size: 13px;
-  color: var(--color-main-text);
-  background: var(--color-bg);
-  overflow: hidden;
-}
-
-#app {
-  display: flex;
-  flex-direction: column;
-  height: 100vh;
+.lo-editor *, .lo-editor *::before, .lo-editor *::after {
+  box-sizing: border-box;
 }
 
 /* ============================================
    1. MENUBAR (top navigation)
    ============================================ */
 
-#main-nav {
+.lo-editor .lo-nav {
   display: flex;
   align-items: center;
-  height: var(--nav-height);
-  background: var(--color-bg);
-  border-bottom: 1px solid var(--color-border);
+  height: var(--lo-nav-height);
+  background: var(--lo-color-bg);
+  border-bottom: 1px solid var(--lo-color-border);
   padding: 0 8px;
   flex-shrink: 0;
   gap: 4px;
 }
 
-#main-menu {
+.lo-editor .lo-menu {
   list-style: none;
   display: flex;
   align-items: center;
   gap: 0;
+  margin: 0;
+  padding: 0;
 }
 
-#main-menu li a {
+.lo-editor .lo-menu li a {
   display: block;
   padding: 4px 8px;
-  color: var(--color-main-text);
+  color: var(--lo-color-main-text);
   text-decoration: none;
   border: 1px solid transparent;
-  border-radius: var(--border-radius);
+  border-radius: var(--lo-border-radius);
   font-size: 13px;
   line-height: 1.4;
   white-space: nowrap;
 }
 
-#main-menu .menu-item {
+.lo-editor .lo-menu-item {
   position: relative;
 }
 
-#main-menu .menu-item > a:hover,
-#main-menu .menu-item.open > a {
-  background: var(--color-bg-darker);
-  color: var(--color-text-darker);
+.lo-editor .lo-menu-item > a:hover,
+.lo-editor .lo-menu-item.open > a {
+  background: var(--lo-color-bg-darker);
+  color: var(--lo-color-text-darker);
 }
 
 /* Dropdown panel */
-.menu-dropdown {
+.lo-editor .lo-menu-dropdown {
   position: absolute;
   top: 100%;
   left: 0;
   z-index: 1000;
   min-width: 220px;
-  background: var(--color-bg-light);
-  border: 1px solid var(--color-btn-border);
-  border-radius: var(--border-radius);
+  background: var(--lo-color-bg-light);
+  border: 1px solid var(--lo-color-btn-border);
+  border-radius: var(--lo-border-radius);
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
   padding: 4px 0;
   list-style: none;
   margin: 0;
 }
 
-.menu-dropdown.submenu {
+.lo-editor .lo-menu-dropdown.lo-submenu {
   position: absolute;
   top: -4px;
   left: 100%;
   display: none;
 }
 
-.menu-entry.has-submenu:hover > .submenu {
+.lo-editor .lo-menu-entry.has-submenu:hover > .lo-submenu {
   display: block;
 }
 
-.menu-entry > a {
+.lo-editor .lo-menu-entry > a {
   display: flex;
   align-items: center;
   padding: 5px 12px;
-  color: var(--color-main-text);
+  color: var(--lo-color-main-text);
   text-decoration: none;
   font-size: 13px;
   white-space: nowrap;
@@ -135,73 +133,73 @@ body {
   border-radius: 0;
 }
 
-.menu-entry > a:hover {
-  background: var(--color-bg-hover);
-  color: var(--color-text-darker);
+.lo-editor .lo-menu-entry > a:hover {
+  background: var(--lo-color-bg-hover);
+  color: var(--lo-color-text-darker);
 }
 
-.menu-label {
+.lo-editor .lo-menu-label {
   flex: 1;
 }
 
-.menu-shortcut {
+.lo-editor .lo-menu-shortcut {
   margin-left: 24px;
   font-size: 12px;
-  color: var(--color-text-lighter);
+  color: var(--lo-color-text-lighter);
 }
 
-.menu-arrow {
+.lo-editor .lo-menu-arrow {
   margin-left: 12px;
   font-size: 10px;
-  color: var(--color-text-lighter);
+  color: var(--lo-color-text-lighter);
 }
 
-.menu-separator {
+.lo-editor .lo-menu-separator {
   height: 1px;
-  background: var(--color-border);
+  background: var(--lo-color-border);
   margin: 4px 8px;
 }
 
-#document-title {
+.lo-editor .lo-doc-title {
   flex: 1;
   display: flex;
   justify-content: center;
   min-width: 0;
 }
 
-#document-name {
+.lo-editor .lo-doc-name {
   font-weight: 600;
   font-size: 13px;
-  color: var(--color-text-darker);
+  color: var(--lo-color-text-darker);
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
 }
 
-#nav-actions {
+.lo-editor .lo-nav-actions {
   display: flex;
   align-items: center;
   gap: 8px;
   flex-shrink: 0;
 }
 
-.file-input-label {
+.lo-editor .lo-file-label {
   display: inline-block;
   padding: 3px 12px;
-  background: rgb(var(--doc-type));
+  background: rgb(var(--lo-doc-type));
   color: #fff;
-  border-radius: var(--border-radius);
+  border-radius: var(--lo-border-radius);
   cursor: pointer;
   font-size: 12px;
   font-weight: 500;
   line-height: 1.6;
 }
 
-.file-input-label:hover {
+.lo-editor .lo-file-label:hover {
   opacity: 0.9;
 }
 
-#fileInput {
+.lo-editor .lo-file-input {
   display: none;
 }
 
@@ -209,104 +207,112 @@ body {
    2. FORMATTING TOOLBAR
    ============================================ */
 
-#toolbar-wrapper {
+.lo-editor .lo-toolbar-wrapper {
   display: flex;
   flex-direction: column;
-  background: var(--color-bg-light);
-  border-bottom: 1px solid var(--color-border);
+  background: var(--lo-color-bg-light);
+  border-bottom: 1px solid var(--lo-color-border);
   flex-shrink: 0;
 }
 
-#toolbar-up {
+.lo-editor .lo-toolbar {
   display: flex;
   align-items: center;
   padding: 2px 4px;
-  min-height: var(--toolbar-height);
+  min-height: var(--lo-toolbar-height);
   flex-wrap: wrap;
   gap: 0;
 }
 
 /* Toolbar group = visual cluster of buttons with separator */
-.toolbar-group {
+.lo-editor .lo-toolbar-group {
   display: flex;
   align-items: center;
   gap: 1px;
   padding: 0 3px;
 }
 
-.toolbar-group + .toolbar-group {
-  border-left: 1px solid var(--color-btn-border);
+.lo-editor .lo-toolbar-group + .lo-toolbar-group {
+  border-left: 1px solid var(--lo-color-btn-border);
   margin-left: 3px;
   padding-left: 6px;
 }
 
 /* Toolbar button (icon only) */
-.toolbar-btn {
+.lo-editor .lo-toolbar-btn {
   display: flex;
   align-items: center;
   justify-content: center;
-  width: var(--btn-size);
-  height: var(--btn-size);
-  padding: var(--btn-padding);
+  width: var(--lo-btn-size);
+  height: var(--lo-btn-size);
+  padding: var(--lo-btn-padding);
   border: 1px solid transparent;
-  border-radius: var(--border-radius);
+  border-radius: var(--lo-border-radius);
   background: transparent;
   cursor: pointer;
   flex-shrink: 0;
 }
 
-.toolbar-btn img {
-  width: var(--btn-img-size);
-  height: var(--btn-img-size);
+.lo-editor .lo-toolbar-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: var(--lo-btn-img-size);
+  height: var(--lo-btn-img-size);
   pointer-events: none;
 }
 
-.toolbar-btn:hover:not(:disabled) {
-  background: var(--color-bg-hover);
-  border-color: var(--color-btn-border);
+.lo-editor .lo-toolbar-icon svg {
+  width: 100%;
+  height: 100%;
 }
 
-.toolbar-btn.selected {
-  background: var(--color-bg-selected);
-  border-color: var(--color-selected-border);
+.lo-editor .lo-toolbar-btn:hover:not(:disabled) {
+  background: var(--lo-color-bg-hover);
+  border-color: var(--lo-color-btn-border);
 }
 
-.toolbar-btn:disabled {
+.lo-editor .lo-toolbar-btn.selected {
+  background: var(--lo-color-bg-selected);
+  border-color: var(--lo-color-selected-border);
+}
+
+.lo-editor .lo-toolbar-btn:disabled {
   opacity: 0.4;
   cursor: default;
 }
 
 /* Toolbar select (font name / font size) */
-.toolbar-select {
+.lo-editor .lo-toolbar-select {
   height: 24px;
   padding: 0 4px;
-  border: 1px solid var(--color-border);
-  border-radius: var(--border-radius);
-  background: var(--color-bg-light);
+  border: 1px solid var(--lo-color-border);
+  border-radius: var(--lo-border-radius);
+  background: var(--lo-color-bg-light);
   font-size: 12px;
-  color: var(--color-main-text);
+  color: var(--lo-color-main-text);
   cursor: pointer;
   outline: none;
 }
 
-.toolbar-select:hover:not(:disabled) {
-  border-color: var(--color-btn-border);
+.lo-editor .lo-toolbar-select:hover:not(:disabled) {
+  border-color: var(--lo-color-btn-border);
 }
 
-.toolbar-select:focus {
-  border-color: var(--color-selected-border);
+.lo-editor .lo-toolbar-select:focus {
+  border-color: var(--lo-color-selected-border);
 }
 
-.toolbar-select:disabled {
+.lo-editor .lo-toolbar-select:disabled {
   opacity: 0.4;
   cursor: default;
 }
 
-.toolbar-select.font-name {
+.lo-editor .lo-toolbar-select.lo-font-name {
   width: 150px;
 }
 
-.toolbar-select.font-size {
+.lo-editor .lo-toolbar-select.lo-font-size {
   width: 56px;
 }
 
@@ -314,16 +320,13 @@ body {
    3. DOCUMENT CANVAS
    ============================================ */
 
-#canvas-container {
+.lo-editor .lo-canvas-container {
   flex: 1;
   position: relative;
   overflow: hidden;
 }
 
-/* Canvas styles are set inline (required by Qt/Emscripten).
-   The canvas MUST NOT have border or padding, or mouse coords will be wrong. */
-
-#loadingInfo {
+.lo-editor .lo-loading {
   position: absolute;
   top: 50%;
   left: 50%;
@@ -332,23 +335,23 @@ body {
   z-index: 10;
 }
 
-#loadingInfo p {
+.lo-editor .lo-loading p {
   margin-top: 16px;
   font-size: 16px;
-  color: var(--color-main-text);
+  color: var(--lo-color-main-text);
 }
 
-.spinner {
-  border: 10px solid var(--color-border);
-  border-top: 10px solid rgb(var(--doc-type));
+.lo-editor .lo-spinner {
+  border: 10px solid var(--lo-color-border);
+  border-top: 10px solid rgb(var(--lo-doc-type));
   border-radius: 50%;
   width: 64px;
   height: 64px;
   margin: 0 auto;
-  animation: spin 2s linear infinite;
+  animation: lo-spin 2s linear infinite;
 }
 
-@keyframes spin {
+@keyframes lo-spin {
   0% { transform: rotate(0deg); }
   100% { transform: rotate(360deg); }
 }
@@ -357,33 +360,25 @@ body {
    4. STATUS BAR
    ============================================ */
 
-#toolbar-down {
+.lo-editor .lo-statusbar {
   display: flex;
   align-items: center;
-  height: var(--statusbar-height);
-  background: var(--color-bg);
-  border-top: 1px solid var(--color-border);
+  height: var(--lo-statusbar-height);
+  background: var(--lo-color-bg);
+  border-top: 1px solid var(--lo-color-border);
   padding: 0 8px;
   font-size: 11px;
-  color: var(--color-text-lighter);
+  color: var(--lo-color-text-lighter);
   flex-shrink: 0;
   gap: 8px;
 }
 
-#toolbar-down .separator {
+.lo-editor .lo-statusbar .lo-separator {
   width: 1px;
   height: 16px;
-  background: var(--color-border);
+  background: var(--lo-color-border);
 }
 
-#toolbar-down .spacer {
+.lo-editor .lo-statusbar .lo-spacer {
   flex: 1;
-}
-
-/* ============================================
-   5. UTILITY CLASSES
-   ============================================ */
-
-.hidden {
-  display: none !important;
 }

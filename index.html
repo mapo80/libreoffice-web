@@ -1,58 +1,17 @@
 <!DOCTYPE html>
-<html lang="en" data-doctype="text">
+<html lang="en">
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <link rel="icon" href="data:," />
-    <title>DOCX Viewer - ZetaOffice</title>
+    <title>LibreOffice Web Editor</title>
+    <style>
+      html, body { margin: 0; padding: 0; height: 100%; overflow: hidden; }
+      #editor { width: 100%; height: 100vh; }
+    </style>
   </head>
   <body>
-    <div id="app">
-      <!-- 1. MENUBAR -->
-      <nav id="main-nav">
-        <ul id="main-menu">
-          <!-- Menu items populated by main.ts from menu-config.ts -->
-        </ul>
-        <div id="document-title">
-          <span id="document-name">Untitled</span>
-        </div>
-        <div id="nav-actions">
-          <label class="file-input-label" for="fileInput">Open</label>
-          <input type="file" id="fileInput" accept=".docx,.odt,.doc,.xlsx,.ods,.pptx,.odp" disabled />
-        </div>
-      </nav>
-
-      <!-- 2. FORMATTING TOOLBAR (populated by main.ts) -->
-      <div id="toolbar-wrapper">
-        <div id="toolbar-up"></div>
-      </div>
-
-      <!-- 3. DOCUMENT CANVAS -->
-      <main id="canvas-container" onselectstart="event.preventDefault()">
-        <div id="loadingInfo">
-          <div class="spinner"></div>
-          <p>ZetaOffice is loading...</p>
-        </div>
-        <canvas
-          id="qtcanvas"
-          contenteditable="true"
-          oncontextmenu="event.preventDefault()"
-          onkeydown="event.preventDefault()"
-          style="border: 0px none; padding: 0; width: 100%; height: 100%; visibility: hidden;"
-        ></canvas>
-      </main>
-
-      <!-- 4. STATUS BAR -->
-      <footer id="toolbar-down">
-        <span id="page-info">Page 1 of 1</span>
-        <span class="separator"></span>
-        <span id="word-count"></span>
-        <span class="spacer"></span>
-        <span id="insert-mode">Insert</span>
-        <span class="separator"></span>
-        <span id="zoom-level">100%</span>
-      </footer>
-    </div>
+    <div id="editor"></div>
     <script type="module" src="/src/main.ts"></script>
   </body>
 </html>
