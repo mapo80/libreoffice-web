@@ -102,12 +102,26 @@ function registerOneListener(command) {
       disposing: function(source) {},
       statusChanged: function(state) {
         var val = zetajs.fromAny(state.State);
-        // Normalize: boolean stays boolean, everything else is string
+        // Extract usable value depending on type
         var sendVal;
         if (typeof val === 'boolean') {
           sendVal = val;
         } else if (val == null) {
           sendVal = '';
+        } else if (typeof val === 'object') {
+          // UNO struct: extract relevant field based on command
+          // CharFontName returns a FontDescriptor with .Name (not .FamilyName)
+          if (command === '.uno:CharFontName' && val.Name !== undefined) {
+            sendVal = String(val.Name);
+          } else if (command === '.uno:FontHeight' && val.Height !== undefined) {
+            sendVal = String(val.Height);
+          } else if (val.Name !== undefined) {
+            sendVal = String(val.Name);
+          } else if (val.Value !== undefined) {
+            sendVal = String(val.Value);
+          } else {
+            sendVal = String(val);
+          }
         } else {
           sendVal = String(val);
         }
@@ -132,8 +146,8 @@ function sendFontList() {
     var fontDescriptors = device.getFontDescriptors();
     var fontNames = {};
     for (var i = 0; i < fontDescriptors.length; i++) {
-      var name = fontDescriptors[i].Name;
-      if (name) fontNames[name] = true;
+      var name = String(fontDescriptors[i].Name);
+      if (name && name !== 'undefined' && name !== '[object Object]') fontNames[name] = true;
     }
     var sorted = Object.keys(fontNames).sort(function(a, b) {
       return a.toLowerCase().localeCompare(b.toLowerCase());
@@ -167,15 +181,21 @@ function dispatchWithParam(unoCommand, value) {
 
   var args = [];
   if (unoCommand === '.uno:CharFontName') {
-    args = [new css.beans.PropertyValue({
-      Name: 'CharFontName.FamilyName',
-      Value: zetajs.Any('string', value),
-    })];
+    // SvxFont struct: must provide all members
+    args = [
+      new css.beans.PropertyValue({ Name: 'CharFontName.StyleName', Value: '' }),
+      new css.beans.PropertyValue({ Name: 'CharFontName.Pitch', Value: zetajs.Any('short', 0) }),
+      new css.beans.PropertyValue({ Name: 'CharFontName.CharSet', Value: zetajs.Any('short', -1) }),
+      new css.beans.PropertyValue({ Name: 'CharFontName.Family', Value: zetajs.Any('short', 0) }),
+      new css.beans.PropertyValue({ Name: 'CharFontName.FamilyName', Value: value }),
+    ];
   } else if (unoCommand === '.uno:FontHeight') {
-    args = [new css.beans.PropertyValue({
-      Name: 'FontHeight.Height',
-      Value: zetajs.Any('float', parseFloat(value)),
-    })];
+    // SvxFontHeight struct: Height (float), Prop (short), Diff (float)
+    args = [
+      new css.beans.PropertyValue({ Name: 'FontHeight.Height', Value: zetajs.Any('float', parseFloat(value)) }),
+      new css.beans.PropertyValue({ Name: 'FontHeight.Prop', Value: zetajs.Any('short', 100) }),
+      new css.beans.PropertyValue({ Name: 'FontHeight.Diff', Value: zetajs.Any('float', 0) }),
+    ];
   } else if (unoCommand === '.uno:Color' || unoCommand === '.uno:CharBackColor' || unoCommand === '.uno:BackgroundColor') {
     args = [new css.beans.PropertyValue({
       Name: unoCommand.replace('.uno:', '') + '.Color',
