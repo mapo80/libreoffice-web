@@ -7,14 +7,23 @@
 
 'use strict';
 
-
 // global variables - zetajs environment:
 let zetajs, css;
 
-// = global variables (some are global for easier debugging) =
 // common variables:
 let context, desktop, xModel, ctrl;
 
+// All UNO commands we track for toolbar state updates.
+var trackedCommands = [
+  '.uno:Bold', '.uno:Italic', '.uno:Underline', '.uno:Strikeout',
+  '.uno:SubScript', '.uno:SuperScript',
+  '.uno:LeftPara', '.uno:CenterPara', '.uno:RightPara', '.uno:JustifyPara',
+  '.uno:DefaultBullet', '.uno:DefaultNumbering',
+  '.uno:CharFontName', '.uno:FontHeight',
+  '.uno:Undo', '.uno:Redo',
+  '.uno:FormatPaintbrush', '.uno:ControlCodes',
+  '.uno:ParaLeftToRight', '.uno:ParaRightToLeft',
+];
 
 function demo() {
   context = zetajs.getUnoComponentContext();
@@ -41,24 +50,20 @@ function demo() {
   // Turn off sidebar:
   dispatch('.uno:Sidebar');
 
-  for (const id of 'Bold Italic Underline'.split(' ')) {
-    const urlObj = transformUrl('.uno:' + id);
-    const listener = zetajs.unoObject([css.frame.XStatusListener], {
-      disposing: function(source) {},
-      statusChanged: function(state) {
-        state = zetajs.fromAny(state.State);
-        // Behave like desktop UI if a non uniformly formatted area is selected.
-        if (typeof state !== 'boolean') state = false;  // like desktop UI
-        zetajs.mainPort.postMessage({cmd: 'setFormat', id, state});
-      }
-    });
-    queryDispatch(urlObj).addStatusListener(listener, urlObj);
-  }
+  // Register status listeners for all tracked commands:
+  registerStatusListeners();
+
+  // Send font list to main thread:
+  sendFontList();
 
   zetajs.mainPort.onmessage = function (e) {
     switch (e.data.cmd) {
-    case 'toggleFormatting':
-      dispatch('.uno:' + e.data.id);
+    case 'dispatch':
+      if (e.data.value !== undefined) {
+        dispatchWithParam(e.data.command, e.data.value);
+      } else {
+        dispatch(e.data.command);
+      }
       break;
     case 'loadDocument':
       xModel.close(true);
@@ -69,20 +74,9 @@ function demo() {
       // Hide sidebar using XSidebarProvider API (not toggle):
       var xSidebar = ctrl.getSidebar();
       if (xSidebar) xSidebar.setVisible(false);
-      // Re-register format status listeners for the new controller:
-      for (const id of 'Bold Italic Underline'.split(' ')) {
-        const urlObj = transformUrl('.uno:' + id);
-        const listener = zetajs.unoObject([css.frame.XStatusListener], {
-          disposing: function(source) {},
-          statusChanged: function(state) {
-            state = zetajs.fromAny(state.State);
-            if (typeof state !== 'boolean') state = false;
-            zetajs.mainPort.postMessage({cmd: 'setFormat', id, state});
-          }
-        });
-        queryDispatch(urlObj).addStatusListener(listener, urlObj);
-      }
-      // Tell main thread to trigger resize for proper canvas layout:
+      // Re-register status listeners for the new controller:
+      registerStatusListeners();
+      // Tell main thread to trigger resize:
       zetajs.mainPort.postMessage({cmd: 'doc_loaded'});
       break;
     default:
@@ -92,8 +86,66 @@ function demo() {
   zetajs.mainPort.postMessage({cmd: 'ui_ready'});
 }
 
+function registerStatusListeners() {
+  for (var i = 0; i < trackedCommands.length; i++) {
+    var command = trackedCommands[i];
+    registerOneListener(command);
+  }
+}
+
+function registerOneListener(command) {
+  try {
+    var urlObj = transformUrl(command);
+    var disp = queryDispatch(urlObj);
+    if (!disp) return;
+    var listener = zetajs.unoObject([css.frame.XStatusListener], {
+      disposing: function(source) {},
+      statusChanged: function(state) {
+        var val = zetajs.fromAny(state.State);
+        // Normalize: boolean stays boolean, everything else is string
+        var sendVal;
+        if (typeof val === 'boolean') {
+          sendVal = val;
+        } else if (val == null) {
+          sendVal = '';
+        } else {
+          sendVal = String(val);
+        }
+        zetajs.mainPort.postMessage({
+          cmd: 'stateChanged',
+          command: command,
+          value: sendVal,
+          enabled: true,
+        });
+      }
+    });
+    disp.addStatusListener(listener, urlObj);
+  } catch (ex) {
+    // Some commands may not be available for the current document type
+  }
+}
+
+function sendFontList() {
+  try {
+    var toolkit = css.awt.Toolkit.create(context);
+    var device = toolkit.createScreenCompatibleDevice(0, 0);
+    var fontDescriptors = device.getFontDescriptors();
+    var fontNames = {};
+    for (var i = 0; i < fontDescriptors.length; i++) {
+      var name = fontDescriptors[i].Name;
+      if (name) fontNames[name] = true;
+    }
+    var sorted = Object.keys(fontNames).sort(function(a, b) {
+      return a.toLowerCase().localeCompare(b.toLowerCase());
+    });
+    zetajs.mainPort.postMessage({cmd: 'fontList', fonts: sorted});
+  } catch (ex) {
+    // Font enumeration not available
+  }
+}
+
 function transformUrl(unoUrl) {
-  const ioparam = {val: new css.util.URL({Complete: unoUrl})};
+  var ioparam = {val: new css.util.URL({Complete: unoUrl})};
   css.util.URLTransformer.create(context).parseStrict(ioparam);
   return ioparam.val;
 }
@@ -103,8 +155,34 @@ function queryDispatch(urlObj) {
 }
 
 function dispatch(unoUrl) {
-  const urlObj = transformUrl(unoUrl);
-  queryDispatch(urlObj).dispatch(urlObj, []);
+  var urlObj = transformUrl(unoUrl);
+  var disp = queryDispatch(urlObj);
+  if (disp) disp.dispatch(urlObj, []);
+}
+
+function dispatchWithParam(unoCommand, value) {
+  var urlObj = transformUrl(unoCommand);
+  var disp = queryDispatch(urlObj);
+  if (!disp) return;
+
+  var args = [];
+  if (unoCommand === '.uno:CharFontName') {
+    args = [new css.beans.PropertyValue({
+      Name: 'CharFontName.FamilyName',
+      Value: zetajs.Any('string', value),
+    })];
+  } else if (unoCommand === '.uno:FontHeight') {
+    args = [new css.beans.PropertyValue({
+      Name: 'FontHeight.Height',
+      Value: zetajs.Any('float', parseFloat(value)),
+    })];
+  } else if (unoCommand === '.uno:Color' || unoCommand === '.uno:CharBackColor' || unoCommand === '.uno:BackgroundColor') {
+    args = [new css.beans.PropertyValue({
+      Name: unoCommand.replace('.uno:', '') + '.Color',
+      Value: zetajs.Any('long', parseInt(value)),
+    })];
+  }
+  disp.dispatch(urlObj, args);
 }
 
 Module.zetajs.then(function(pZetajs) {

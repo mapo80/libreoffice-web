@@ -9,13 +9,6 @@
 const soffice_base_url = new URL('./wasm/', location.href).toString();
 
 const canvas = document.getElementById('qtcanvas');
-const loadingInfo = document.getElementById('loadingInfo');
-const fileInput = document.getElementById('fileInput');
-const formatButtons = {
-  Bold: document.getElementById('btnBold'),
-  Italic: document.getElementById('btnItalic'),
-  Underline: document.getElementById('btnUnderline'),
-};
 
 // --- Module setup (same as official demo) ---
 var Module = {
@@ -59,61 +52,39 @@ soffice_js.src = soffice_base_url + 'soffice.js';
 
 soffice_js.onload = function () {
   Module.uno_main.then(function (port) {
-    // Wire up formatting buttons
-    for (const [id, btn] of Object.entries(formatButtons)) {
-      btn.addEventListener('click', function () {
-        port.postMessage({ cmd: 'toggleFormatting', id });
-        canvas.focus();
-      });
-    }
-
-    // Wire up file upload
-    fileInput.addEventListener('change', function () {
-      const file = fileInput.files && fileInput.files[0];
-      if (!file) return;
-
-      const name = file.name;
-      let filePath = '/tmp/input';
-      const dotIndex = name.lastIndexOf('.');
-      if (dotIndex > 0) {
-        filePath += name.substring(dotIndex);
-      }
-
-      file.arrayBuffer().then(function (data) {
-        window.FS.writeFile(filePath, new Uint8Array(data));
-        port.postMessage({ cmd: 'loadDocument', fileName: filePath });
-      });
-
-      fileInput.value = '';
-    });
+    // Expose port to main.ts via custom event
+    window.dispatchEvent(new CustomEvent('soffice-port-ready', { detail: { port } }));
 
     port.onmessage = function (e) {
       switch (e.data.cmd) {
         case 'ui_ready':
           window.dispatchEvent(new Event('resize'));
           setTimeout(function () {
-            loadingInfo.style.display = 'none';
-            canvas.style.visibility = null;
-            fileInput.disabled = false;
-            for (const btn of Object.values(formatButtons)) {
-              btn.disabled = false;
-            }
+            window.dispatchEvent(new Event('uno-ui-ready'));
           }, 1000);
           break;
         case 'doc_loaded':
-          // Trigger resize so the canvas adapts to the new document layout:
           window.dispatchEvent(new Event('resize'));
           setTimeout(function () {
             window.dispatchEvent(new Event('resize'));
           }, 500);
           break;
-        case 'setFormat':
-          if (formatButtons[e.data.id]) {
-            formatButtons[e.data.id].classList.toggle('active', e.data.state);
-          }
+        case 'stateChanged':
+          window.dispatchEvent(new CustomEvent('uno-state-changed', {
+            detail: {
+              command: e.data.command,
+              value: e.data.value,
+              enabled: e.data.enabled,
+            }
+          }));
+          break;
+        case 'fontList':
+          window.dispatchEvent(new CustomEvent('uno-font-list', {
+            detail: { fonts: e.data.fonts }
+          }));
           break;
         default:
-          throw Error('Unknown message command: ' + e.data.cmd);
+          console.warn('Unknown message from worker:', e.data.cmd);
       }
     };
   });

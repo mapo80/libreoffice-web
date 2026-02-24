@@ -1,3 +1,37 @@
+/* Collabora Online-inspired styling for libreoffice-web */
+
+:root {
+  /* Colors from Collabora Online's color-palette.css */
+  --color-main-text: #333;
+  --color-text-dark: #333;
+  --color-text-darker: #000;
+  --color-text-lighter: #696969;
+
+  --color-bg: #F8F9FA;
+  --color-bg-light: #fff;
+  --color-bg-hover: #e8e8e8;
+  --color-bg-selected: rgba(3, 105, 163, 0.1);
+  --color-bg-darker: #c0bfbc;
+
+  --color-border: #e1dfdd;
+  --color-btn-border: #b6b6b6;
+  --color-selected-border: rgb(3, 105, 163);
+
+  /* Document type accent (Writer = blue) */
+  --doc-type: 3, 105, 163;
+
+  /* Sizing */
+  --btn-size: 28px;
+  --btn-padding: 2px;
+  --btn-img-size: calc(var(--btn-size) - var(--btn-padding) * 2);
+  --border-radius: 4px;
+
+  /* Layout heights */
+  --nav-height: 32px;
+  --toolbar-height: 36px;
+  --statusbar-height: 28px;
+}
+
 * {
   margin: 0;
   padding: 0;
@@ -5,8 +39,10 @@
 }
 
 body {
-  font-family: system-ui, -apple-system, sans-serif;
-  background: #f5f5f5;
+  font-family: system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+  font-size: 13px;
+  color: var(--color-main-text);
+  background: var(--color-bg);
   overflow: hidden;
 }
 
@@ -16,70 +52,267 @@ body {
   height: 100vh;
 }
 
-#toolbar {
+/* ============================================
+   1. MENUBAR (top navigation)
+   ============================================ */
+
+#main-nav {
   display: flex;
   align-items: center;
-  gap: 16px;
-  padding: 8px 16px;
-  background: #fff;
-  border-bottom: 1px solid #ddd;
+  height: var(--nav-height);
+  background: var(--color-bg);
+  border-bottom: 1px solid var(--color-border);
+  padding: 0 8px;
+  flex-shrink: 0;
+  gap: 4px;
+}
+
+#main-menu {
+  list-style: none;
+  display: flex;
+  align-items: center;
+  gap: 0;
+}
+
+#main-menu li a {
+  display: block;
+  padding: 4px 8px;
+  color: var(--color-main-text);
+  text-decoration: none;
+  border: 1px solid transparent;
+  border-radius: var(--border-radius);
+  font-size: 13px;
+  line-height: 1.4;
+  white-space: nowrap;
+}
+
+#main-menu .menu-item {
+  position: relative;
+}
+
+#main-menu .menu-item > a:hover,
+#main-menu .menu-item.open > a {
+  background: var(--color-bg-darker);
+  color: var(--color-text-darker);
+}
+
+/* Dropdown panel */
+.menu-dropdown {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  z-index: 1000;
+  min-width: 220px;
+  background: var(--color-bg-light);
+  border: 1px solid var(--color-btn-border);
+  border-radius: var(--border-radius);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+  padding: 4px 0;
+  list-style: none;
+  margin: 0;
+}
+
+.menu-dropdown.submenu {
+  position: absolute;
+  top: -4px;
+  left: 100%;
+  display: none;
+}
+
+.menu-entry.has-submenu:hover > .submenu {
+  display: block;
+}
+
+.menu-entry > a {
+  display: flex;
+  align-items: center;
+  padding: 5px 12px;
+  color: var(--color-main-text);
+  text-decoration: none;
+  font-size: 13px;
+  white-space: nowrap;
+  border: none;
+  border-radius: 0;
+}
+
+.menu-entry > a:hover {
+  background: var(--color-bg-hover);
+  color: var(--color-text-darker);
+}
+
+.menu-label {
+  flex: 1;
+}
+
+.menu-shortcut {
+  margin-left: 24px;
+  font-size: 12px;
+  color: var(--color-text-lighter);
+}
+
+.menu-arrow {
+  margin-left: 12px;
+  font-size: 10px;
+  color: var(--color-text-lighter);
+}
+
+.menu-separator {
+  height: 1px;
+  background: var(--color-border);
+  margin: 4px 8px;
+}
+
+#document-title {
+  flex: 1;
+  display: flex;
+  justify-content: center;
+  min-width: 0;
+}
+
+#document-name {
+  font-weight: 600;
+  font-size: 13px;
+  color: var(--color-text-darker);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+#nav-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
   flex-shrink: 0;
 }
 
-#toolbar h1 {
-  font-size: 18px;
-  font-weight: 600;
-  color: #1f2937;
-}
-
-#controls {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-}
-
 .file-input-label {
-  padding: 6px 14px;
-  background: #059669;
+  display: inline-block;
+  padding: 3px 12px;
+  background: rgb(var(--doc-type));
   color: #fff;
-  border-radius: 4px;
+  border-radius: var(--border-radius);
   cursor: pointer;
-  font-size: 14px;
+  font-size: 12px;
+  font-weight: 500;
+  line-height: 1.6;
 }
 
 .file-input-label:hover {
-  background: #047857;
+  opacity: 0.9;
 }
 
 #fileInput {
   display: none;
 }
 
-.btn-group {
+/* ============================================
+   2. FORMATTING TOOLBAR
+   ============================================ */
+
+#toolbar-wrapper {
   display: flex;
-  gap: 2px;
+  flex-direction: column;
+  background: var(--color-bg-light);
+  border-bottom: 1px solid var(--color-border);
+  flex-shrink: 0;
 }
 
-.fmt-btn {
-  padding: 6px 12px;
-  border: 1px solid #ccc;
-  background: #fff;
+#toolbar-up {
+  display: flex;
+  align-items: center;
+  padding: 2px 4px;
+  min-height: var(--toolbar-height);
+  flex-wrap: wrap;
+  gap: 0;
+}
+
+/* Toolbar group = visual cluster of buttons with separator */
+.toolbar-group {
+  display: flex;
+  align-items: center;
+  gap: 1px;
+  padding: 0 3px;
+}
+
+.toolbar-group + .toolbar-group {
+  border-left: 1px solid var(--color-btn-border);
+  margin-left: 3px;
+  padding-left: 6px;
+}
+
+/* Toolbar button (icon only) */
+.toolbar-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: var(--btn-size);
+  height: var(--btn-size);
+  padding: var(--btn-padding);
+  border: 1px solid transparent;
+  border-radius: var(--border-radius);
+  background: transparent;
   cursor: pointer;
-  font-size: 14px;
-  font-weight: 600;
-  min-width: 36px;
+  flex-shrink: 0;
 }
 
-.fmt-btn:disabled {
-  opacity: 0.5;
-  cursor: not-allowed;
+.toolbar-btn img {
+  width: var(--btn-img-size);
+  height: var(--btn-img-size);
+  pointer-events: none;
 }
 
-.fmt-btn.active {
-  background: #059669;
-  color: #fff;
-  border-color: #059669;
+.toolbar-btn:hover:not(:disabled) {
+  background: var(--color-bg-hover);
+  border-color: var(--color-btn-border);
 }
+
+.toolbar-btn.selected {
+  background: var(--color-bg-selected);
+  border-color: var(--color-selected-border);
+}
+
+.toolbar-btn:disabled {
+  opacity: 0.4;
+  cursor: default;
+}
+
+/* Toolbar select (font name / font size) */
+.toolbar-select {
+  height: 24px;
+  padding: 0 4px;
+  border: 1px solid var(--color-border);
+  border-radius: var(--border-radius);
+  background: var(--color-bg-light);
+  font-size: 12px;
+  color: var(--color-main-text);
+  cursor: pointer;
+  outline: none;
+}
+
+.toolbar-select:hover:not(:disabled) {
+  border-color: var(--color-btn-border);
+}
+
+.toolbar-select:focus {
+  border-color: var(--color-selected-border);
+}
+
+.toolbar-select:disabled {
+  opacity: 0.4;
+  cursor: default;
+}
+
+.toolbar-select.font-name {
+  width: 150px;
+}
+
+.toolbar-select.font-size {
+  width: 56px;
+}
+
+/* ============================================
+   3. DOCUMENT CANVAS
+   ============================================ */
 
 #canvas-container {
   flex: 1;
@@ -87,7 +320,7 @@ body {
   overflow: hidden;
 }
 
-/* Canvas styles are set inline on the element (required by Qt/Emscripten).
+/* Canvas styles are set inline (required by Qt/Emscripten).
    The canvas MUST NOT have border or padding, or mouse coords will be wrong. */
 
 #loadingInfo {
@@ -96,20 +329,21 @@ body {
   left: 50%;
   transform: translate(-50%, -50%);
   text-align: center;
+  z-index: 10;
 }
 
 #loadingInfo p {
   margin-top: 16px;
-  font-size: 18px;
-  color: #1f2937;
+  font-size: 16px;
+  color: var(--color-main-text);
 }
 
 .spinner {
-  border: 12px solid #1f2937;
-  border-top: 12px solid #059669;
+  border: 10px solid var(--color-border);
+  border-top: 10px solid rgb(var(--doc-type));
   border-radius: 50%;
-  width: 80px;
-  height: 80px;
+  width: 64px;
+  height: 64px;
   margin: 0 auto;
   animation: spin 2s linear infinite;
 }
@@ -118,6 +352,37 @@ body {
   0% { transform: rotate(0deg); }
   100% { transform: rotate(360deg); }
 }
+
+/* ============================================
+   4. STATUS BAR
+   ============================================ */
+
+#toolbar-down {
+  display: flex;
+  align-items: center;
+  height: var(--statusbar-height);
+  background: var(--color-bg);
+  border-top: 1px solid var(--color-border);
+  padding: 0 8px;
+  font-size: 11px;
+  color: var(--color-text-lighter);
+  flex-shrink: 0;
+  gap: 8px;
+}
+
+#toolbar-down .separator {
+  width: 1px;
+  height: 16px;
+  background: var(--color-border);
+}
+
+#toolbar-down .spacer {
+  flex: 1;
+}
+
+/* ============================================
+   5. UTILITY CLASSES
+   ============================================ */
 
 .hidden {
   display: none !important;
