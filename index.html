@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link rel="icon" href="data:," />
+    <title>DOCX Viewer - ZetaOffice</title>
+  </head>
+  <body>
+    <div id="app">
+      <header id="toolbar">
+        <h1>DOCX Viewer</h1>
+        <div id="controls">
+          <label class="file-input-label" for="fileInput">Open DOCX</label>
+          <input type="file" id="fileInput" accept=".docx,.odt,.doc,.xlsx,.ods,.pptx,.odp" disabled />
+          <div class="btn-group" role="group" aria-label="Text formatting">
+            <button id="btnBold" class="fmt-btn" disabled><b>B</b></button>
+            <button id="btnItalic" class="fmt-btn" disabled><i>I</i></button>
+            <button id="btnUnderline" class="fmt-btn" disabled><u>U</u></button>
+          </div>
+        </div>
+      </header>
+      <main id="canvas-container" onselectstart="event.preventDefault()">
+        <div id="loadingInfo">
+          <div class="spinner"></div>
+          <p>ZetaOffice is loading...</p>
+        </div>
+        <canvas
+          id="qtcanvas"
+          contenteditable="true"
+          oncontextmenu="event.preventDefault()"
+          onkeydown="event.preventDefault()"
+          style="border: 0px none; padding: 0; width: 100%; height: calc(100vh - 60px); visibility: hidden;"
+        ></canvas>
+      </main>
+    </div>
+    <script type="module" src="/src/main.ts"></script>
+  </body>
+</html>

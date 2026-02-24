@@ -1,0 +1,22 @@
+{
+  "name": "libreoffice-web",
+  "private": true,
+  "version": "0.1.0",
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "tsc && vite build",
+    "preview": "vite preview",
+    "postinstall": "node scripts/copy-zetajs.mjs",
+    "download-wasm": "node scripts/download-wasm.mjs"
+  },
+  "dependencies": {
+    "zetajs": "^1.2.0"
+  },
+  "devDependencies": {
+    "@playwright/test": "^1.58.2",
+    "puppeteer": "^24.37.5",
+    "typescript": "^5.7.0",
+    "vite": "^6.2.0"
+  }
+}
