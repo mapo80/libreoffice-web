@@ -1,70 +1,117 @@
+/* -*- Mode: JS; tab-width: 2; indent-tabs-mode: nil; js-indent-level: 2; fill-column: 100 -*- */
 // SPDX-License-Identifier: MIT
-// Runs inside the WASM Web Worker (module mode). NOT processed by Vite.
 
-import { ZetaHelperThread } from './assets/vendor/zetajs/zetaHelper.js';
+// Debugging note:
+// Switch the web worker in the browsers debug tab to debug this code.
+// It's the "em-pthread" web worker with the most memory usage, where "zetajs" is defined.
 
-const zHT = new ZetaHelperThread();
-const zetajs = zHT.zetajs;
-const css = zHT.css;
-const desktop = zHT.desktop;
+'use strict';
 
-let xModel, ctrl;
-let writerModuleConfigured = false;
 
-export { zHT, xModel, ctrl };
+// global variables - zetajs environment:
+let zetajs, css;
 
-function loadFile(url) {
-  xModel = desktop.loadComponentFromURL(url, '_default', 0, []);
-  ctrl = xModel.getCurrentController();
+// = global variables (some are global for easier debugging) =
+// common variables:
+let context, desktop, xModel, ctrl;
 
-  if (!writerModuleConfigured) {
-    writerModuleConfigured = true;
-    // One-time Writer module configuration
-    zHT.configDisableToolbars(['Writer']);
-    zHT.dispatch(ctrl, 'Sidebar');
-  }
-
-  const frame = ctrl.getFrame();
-  frame.LayoutManager.hideElement('private:resource/menubar/menubar');
-  frame.LayoutManager.hideElement('private:resource/statusbar/statusbar');
-  frame.getContainerWindow().FullScreen = true;
-
-  // Register formatting status listeners
-  for (const id of ['Bold', 'Italic', 'Underline']) {
-    const urlObj = zHT.transformUrl(id);
-    const listener = zetajs.unoObject([css.frame.XStatusListener], {
-      disposing(source) {},
-      statusChanged(state) {
-        state = zetajs.fromAny(state.State);
-        if (typeof state !== 'boolean') state = false;
-        zetajs.mainPort.postMessage({ cmd: 'setFormat', id, state });
-      },
-    });
-    zHT.queryDispatch(ctrl, urlObj).addStatusListener(listener, urlObj);
-  }
-}
 
 function demo() {
-  // Load a blank Writer document initially
-  loadFile('private:factory/swriter');
+  context = zetajs.getUnoComponentContext();
 
-  zHT.thrPort.onmessage = (e) => {
-    switch (e.data.cmd) {
-      case 'toggleFormatting':
-        zHT.dispatch(ctrl, e.data.id);
-        break;
-
-      case 'loadDocument':
-        xModel.close(true);
-        loadFile('file://' + e.data.fileName);
-        break;
-
-      default:
-        throw Error('Unknown message command: ' + e.data.cmd);
+  // Turn off toolbars:
+  const config = css.configuration.ReadWriteAccess.create(context, 'en-US');
+  const uielems = config.getByHierarchicalName(
+    '/org.openoffice.Office.UI.WriterWindowState/UIElements/States');
+  for (const i of uielems.getElementNames()) {
+    const uielem = uielems.getByName(i);
+    if (uielem.getByName('Visible')) {
+      uielem.setPropertyValue('Visible', false);
     }
-  };
+  }
+  config.commitChanges();
 
-  zHT.thrPort.postMessage({ cmd: 'ui_ready' });
+  desktop = css.frame.Desktop.create(context);
+  xModel = desktop.loadComponentFromURL('private:factory/swriter', '_default', 0, [])
+  ctrl = xModel.getCurrentController();
+  ctrl.getFrame().getContainerWindow().FullScreen = true;
+
+  ctrl.getFrame().LayoutManager.hideElement("private:resource/menubar/menubar");
+
+  // Turn off sidebar:
+  dispatch('.uno:Sidebar');
+
+  for (const id of 'Bold Italic Underline'.split(' ')) {
+    const urlObj = transformUrl('.uno:' + id);
+    const listener = zetajs.unoObject([css.frame.XStatusListener], {
+      disposing: function(source) {},
+      statusChanged: function(state) {
+        state = zetajs.fromAny(state.State);
+        // Behave like desktop UI if a non uniformly formatted area is selected.
+        if (typeof state !== 'boolean') state = false;  // like desktop UI
+        zetajs.mainPort.postMessage({cmd: 'setFormat', id, state});
+      }
+    });
+    queryDispatch(urlObj).addStatusListener(listener, urlObj);
+  }
+
+  zetajs.mainPort.onmessage = function (e) {
+    switch (e.data.cmd) {
+    case 'toggleFormatting':
+      dispatch('.uno:' + e.data.id);
+      break;
+    case 'loadDocument':
+      xModel.close(true);
+      xModel = desktop.loadComponentFromURL('file://' + e.data.fileName, '_default', 0, []);
+      ctrl = xModel.getCurrentController();
+      ctrl.getFrame().getContainerWindow().FullScreen = true;
+      ctrl.getFrame().LayoutManager.hideElement("private:resource/menubar/menubar");
+      // Hide sidebar using XSidebarProvider API (not toggle):
+      var xSidebar = ctrl.getSidebar();
+      if (xSidebar) xSidebar.setVisible(false);
+      // Re-register format status listeners for the new controller:
+      for (const id of 'Bold Italic Underline'.split(' ')) {
+        const urlObj = transformUrl('.uno:' + id);
+        const listener = zetajs.unoObject([css.frame.XStatusListener], {
+          disposing: function(source) {},
+          statusChanged: function(state) {
+            state = zetajs.fromAny(state.State);
+            if (typeof state !== 'boolean') state = false;
+            zetajs.mainPort.postMessage({cmd: 'setFormat', id, state});
+          }
+        });
+        queryDispatch(urlObj).addStatusListener(listener, urlObj);
+      }
+      // Tell main thread to trigger resize for proper canvas layout:
+      zetajs.mainPort.postMessage({cmd: 'doc_loaded'});
+      break;
+    default:
+      throw Error('Unknown message command: ' + e.data.cmd);
+    }
+  }
+  zetajs.mainPort.postMessage({cmd: 'ui_ready'});
 }
 
-demo();
+function transformUrl(unoUrl) {
+  const ioparam = {val: new css.util.URL({Complete: unoUrl})};
+  css.util.URLTransformer.create(context).parseStrict(ioparam);
+  return ioparam.val;
+}
+
+function queryDispatch(urlObj) {
+  return ctrl.queryDispatch(urlObj, '_self', 0);
+}
+
+function dispatch(unoUrl) {
+  const urlObj = transformUrl(unoUrl);
+  queryDispatch(urlObj).dispatch(urlObj, []);
+}
+
+Module.zetajs.then(function(pZetajs) {
+  // initializing zetajs environment:
+  zetajs = pZetajs;
+  css = zetajs.uno.com.sun.star;
+  demo();  // launching demo
+});
+
+/* vim:set shiftwidth=2 softtabstop=2 expandtab cinoptions=b1,g0,N-s cinkeys+=0=break: */

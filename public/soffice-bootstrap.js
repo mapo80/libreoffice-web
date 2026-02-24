@@ -1,80 +1,124 @@
 // SPDX-License-Identifier: MIT
 // This file is NOT processed by Vite. It runs as a native ES module in the browser.
+//
+// Follows the exact same pattern as the official standalone demo:
+// https://zetaoffice.net/demos/standalone/
 
-import { ZetaHelperMain } from './assets/vendor/zetajs/zetaHelper.js';
+'use strict';
+
+const soffice_base_url = new URL('./wasm/', location.href).toString();
 
 const canvas = document.getElementById('qtcanvas');
 const loadingInfo = document.getElementById('loadingInfo');
 const fileInput = document.getElementById('fileInput');
-const btnBold = document.getElementById('btnBold');
-const btnItalic = document.getElementById('btnItalic');
-const btnUnderline = document.getElementById('btnUnderline');
+const formatButtons = {
+  Bold: document.getElementById('btnBold'),
+  Italic: document.getElementById('btnItalic'),
+  Underline: document.getElementById('btnUnderline'),
+};
 
-const formatButtons = { Bold: btnBold, Italic: btnItalic, Underline: btnUnderline };
+// --- Module setup (same as official demo) ---
+var Module = {
+  canvas,
+  uno_scripts: ['./assets/vendor/zetajs/zeta.js', './office_thread.js'],
+  locateFile: function (path, prefix) {
+    return (prefix || soffice_base_url) + path;
+  },
+};
+Module.mainScriptUrlOrBlob = new Blob(
+  ["importScripts('" + soffice_base_url + "soffice.js');"],
+  { type: 'text/javascript' },
+);
 
-function setFormatState(id, active) {
-  const btn = formatButtons[id];
-  if (btn) {
-    btn.classList.toggle('active', active);
-  }
-}
+// --- Resize workaround for browser zoom (same as official demo) ---
+let lastDevicePixelRatio = window.devicePixelRatio;
 
-const zHM = new ZetaHelperMain('office_thread.js', {
-  threadJsType: 'module',
-  wasmPkg: 'url:./wasm/',
-  blockPageScroll: true,
-});
+canvas.addEventListener('wheel', (event) => {
+  event.preventDefault();
+}, { passive: false });
 
-zHM.start(() => {
-  // Set up message handler for worker thread communication
-  zHM.thrPort.onmessage = (e) => {
-    switch (e.data.cmd) {
-      case 'ui_ready':
+window.onresize = function () {
+  setTimeout(function () {
+    if (lastDevicePixelRatio) {
+      if (lastDevicePixelRatio != window.devicePixelRatio) {
+        lastDevicePixelRatio = false;
+        canvas.style.width = parseInt(canvas.style.width) + 1 + 'px';
         window.dispatchEvent(new Event('resize'));
-        setTimeout(() => {
-          loadingInfo.style.display = 'none';
-          canvas.style.visibility = '';
-          fileInput.disabled = false;
-          for (const btn of Object.values(formatButtons)) {
-            btn.disabled = false;
+      }
+    } else {
+      lastDevicePixelRatio = window.devicePixelRatio;
+      canvas.style.width = parseInt(canvas.style.width) - 1 + 'px';
+      window.dispatchEvent(new Event('resize'));
+    }
+  }, 100);
+};
+
+// --- Load soffice.js and set up communication (same as official demo) ---
+const soffice_js = document.createElement('script');
+soffice_js.src = soffice_base_url + 'soffice.js';
+
+soffice_js.onload = function () {
+  Module.uno_main.then(function (port) {
+    // Wire up formatting buttons
+    for (const [id, btn] of Object.entries(formatButtons)) {
+      btn.addEventListener('click', function () {
+        port.postMessage({ cmd: 'toggleFormatting', id });
+        canvas.focus();
+      });
+    }
+
+    // Wire up file upload
+    fileInput.addEventListener('change', function () {
+      const file = fileInput.files && fileInput.files[0];
+      if (!file) return;
+
+      const name = file.name;
+      let filePath = '/tmp/input';
+      const dotIndex = name.lastIndexOf('.');
+      if (dotIndex > 0) {
+        filePath += name.substring(dotIndex);
+      }
+
+      file.arrayBuffer().then(function (data) {
+        window.FS.writeFile(filePath, new Uint8Array(data));
+        port.postMessage({ cmd: 'loadDocument', fileName: filePath });
+      });
+
+      fileInput.value = '';
+    });
+
+    port.onmessage = function (e) {
+      switch (e.data.cmd) {
+        case 'ui_ready':
+          window.dispatchEvent(new Event('resize'));
+          setTimeout(function () {
+            loadingInfo.style.display = 'none';
+            canvas.style.visibility = null;
+            fileInput.disabled = false;
+            for (const btn of Object.values(formatButtons)) {
+              btn.disabled = false;
+            }
+          }, 1000);
+          break;
+        case 'doc_loaded':
+          // Trigger resize so the canvas adapts to the new document layout:
+          window.dispatchEvent(new Event('resize'));
+          setTimeout(function () {
+            window.dispatchEvent(new Event('resize'));
+          }, 500);
+          break;
+        case 'setFormat':
+          if (formatButtons[e.data.id]) {
+            formatButtons[e.data.id].classList.toggle('active', e.data.state);
           }
-        }, 1000);
-        break;
-
-      case 'setFormat':
-        setFormatState(e.data.id, e.data.state);
-        break;
-
-      default:
-        console.warn('Unknown message from worker:', e.data.cmd);
-    }
-  };
-
-  // Wire up formatting buttons
-  for (const [id, btn] of Object.entries(formatButtons)) {
-    btn.addEventListener('click', () => {
-      zHM.thrPort.postMessage({ cmd: 'toggleFormatting', id });
-      canvas.focus();
-    });
-  }
-
-  // Wire up file upload
-  fileInput.addEventListener('change', () => {
-    const file = fileInput.files?.[0];
-    if (!file) return;
-
-    const name = file.name;
-    let filePath = '/tmp/input';
-    const dotIndex = name.lastIndexOf('.');
-    if (dotIndex > 0) {
-      filePath += name.substring(dotIndex);
-    }
-
-    file.arrayBuffer().then((data) => {
-      zHM.FS.writeFile(filePath, new Uint8Array(data));
-      zHM.thrPort.postMessage({ cmd: 'loadDocument', fileName: filePath });
-    });
-
-    fileInput.value = '';
+          break;
+        default:
+          throw Error('Unknown message command: ' + e.data.cmd);
+      }
+    };
   });
-});
+};
+
+console.log('Loading WASM binaries for ZetaJS from: ' + soffice_base_url);
+window.Module = Module;
+document.body.appendChild(soffice_js);
