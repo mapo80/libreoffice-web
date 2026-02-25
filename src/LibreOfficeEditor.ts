@@ -32,6 +32,7 @@ interface ResolvedOptions {
   loadingText: string;
   loadingContent?: HTMLElement;
   customFonts: CustomFont[];
+  readOnly: boolean;
 }
 
 export class LibreOfficeEditor {
@@ -46,6 +47,7 @@ export class LibreOfficeEditor {
   private port: MessagePort | null = null;
   private isReady = false;
   private isDestroyed = false;
+  private _readOnly = false;
 
   constructor(options: EditorOptions) {
     if (LibreOfficeEditor.instance) {
@@ -57,14 +59,22 @@ export class LibreOfficeEditor {
     LibreOfficeEditor.instance = this;
 
     this.options = this.resolveOptions(options);
+    this._readOnly = this.options.readOnly;
     this.init();
   }
 
   // ====== PUBLIC API ======
 
+  /** Whether the editor is in read-only mode. */
+  get readOnly(): boolean {
+    return this._readOnly;
+  }
+
   /** Dispatch a UNO command to LibreOffice. */
   dispatchCommand(command: string, value?: string): void {
     if (!this.port) return;
+    // In read-only mode, only allow the internal EditDoc toggle (used to enter read-only).
+    if (this._readOnly && command !== '.uno:EditDoc') return;
     if (value !== undefined) {
       this.port.postMessage({ cmd: 'dispatch', command, value });
     } else {
@@ -176,6 +186,7 @@ export class LibreOfficeEditor {
   // ====== PRIVATE ======
 
   private resolveOptions(options: EditorOptions): ResolvedOptions {
+    const readOnly = options.readOnly ?? false;
     return {
       container: options.container,
       wasmBasePath: options.wasmBasePath ?? './wasm/',
@@ -185,13 +196,14 @@ export class LibreOfficeEditor {
       menus: options.menus ?? writerMenus,
       acceptedFileTypes: options.acceptedFileTypes ?? '.docx,.odt,.doc,.xlsx,.ods,.pptx,.odp',
       documentName: options.documentName ?? 'Untitled',
-      showToolbar: options.showToolbar ?? true,
-      showMenubar: options.showMenubar ?? true,
+      showToolbar: readOnly ? false : (options.showToolbar ?? true),
+      showMenubar: readOnly ? false : (options.showMenubar ?? true),
       showStatusbar: options.showStatusbar ?? true,
-      showFileOpen: options.showFileOpen ?? true,
+      showFileOpen: readOnly ? false : (options.showFileOpen ?? true),
       loadingText: options.loadingText ?? 'Word is loading...',
       loadingContent: options.loadingContent,
       customFonts: options.customFonts ?? [],
+      readOnly,
     };
   }
 
@@ -256,8 +268,10 @@ export class LibreOfficeEditor {
           this.isReady = true;
           this.dom.loading.style.display = 'none';
           this.dom.canvas.style.visibility = '';
-          this.toolbarRenderer.enableAll();
-          this.dom.fileInput.disabled = false;
+          if (!this._readOnly) {
+            this.toolbarRenderer.enableAll();
+            this.dom.fileInput.disabled = false;
+          }
           this.emitter.emit('ready', undefined as never);
         },
         onStateChanged: (command, value, enabled) => {
@@ -269,6 +283,10 @@ export class LibreOfficeEditor {
           this.emitter.emit('font-list', { fonts });
         },
         onDocLoaded: () => {
+          // In read-only mode, toggle LibreOffice out of edit mode.
+          if (this._readOnly && this.port) {
+            this.port.postMessage({ cmd: 'dispatch', command: '.uno:EditDoc' });
+          }
           this.emitter.emit('document-loaded', undefined as never);
         },
       },

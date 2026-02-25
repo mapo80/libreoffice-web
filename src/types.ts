@@ -52,6 +52,9 @@ export interface EditorOptions {
 
   /** Custom fonts injected into the WASM filesystem before LibreOffice boots. */
   customFonts?: CustomFont[];
+
+  /** Open document in read-only mode. Hides toolbar/menubar, disables editing commands. Default: `false`. */
+  readOnly?: boolean;
 }
 
 /** Map of events emitted by LibreOfficeEditor. */
