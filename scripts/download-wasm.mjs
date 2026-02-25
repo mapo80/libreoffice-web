@@ -11,7 +11,13 @@ import https from 'https';
 import { execSync } from 'child_process';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
-const wasmDir = path.join(__dirname, '..', 'public', 'wasm');
+
+const args = process.argv.slice(2);
+const destIdx = args.indexOf('--dest');
+const customDest = destIdx >= 0 ? args[destIdx + 1] : null;
+const wasmDir = customDest
+  ? path.resolve(customDest)
+  : path.join(__dirname, '..', 'public', 'wasm');
 
 const CDN_BASE = 'https://cdn.zetaoffice.net/zetaoffice_latest/';
 

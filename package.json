@@ -1,14 +1,30 @@
 {
   "name": "libreoffice-web",
-  "private": true,
   "version": "0.1.0",
   "type": "module",
+  "main": "dist/libreoffice-web.js",
+  "module": "dist/libreoffice-web.js",
+  "types": "dist/index.d.ts",
+  "exports": {
+    ".": {
+      "import": "./dist/libreoffice-web.js",
+      "types": "./dist/index.d.ts"
+    },
+    "./style.css": "./dist/libreoffice-web.css"
+  },
+  "files": [
+    "dist/",
+    "public/office_thread.js",
+    "scripts/download-wasm.mjs",
+    "scripts/copy-zetajs.mjs"
+  ],
   "scripts": {
     "dev": "vite",
-    "build": "tsc && vite build",
+    "build": "vite build && tsc -p tsconfig.build.json",
     "preview": "vite preview",
     "postinstall": "node scripts/copy-zetajs.mjs",
-    "download-wasm": "node scripts/download-wasm.mjs"
+    "download-wasm": "node scripts/download-wasm.mjs",
+    "pack": "npm run build && npm pack"
   },
   "dependencies": {
     "zetajs": "^1.2.0"

@@ -3,4 +3,5 @@ dist/
 public/assets/vendor/zetajs/
 public/wasm/
 *.local
+*.tgz
 github.txt

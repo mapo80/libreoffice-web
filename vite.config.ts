@@ -1,4 +1,5 @@
 import { defineConfig, type Plugin } from 'vite';
+import { resolve } from 'path';
 
 // Plugin to set COOP/COEP headers required by SharedArrayBuffer (WASM).
 // Uses a middleware instead of static server.headers so that the Vite HMR
@@ -40,5 +41,12 @@ export default defineConfig({
 
   build: {
     target: 'es2020',
+    copyPublicDir: false,
+    lib: {
+      entry: resolve(__dirname, 'src/index.ts'),
+      formats: ['es'],
+      fileName: 'libreoffice-web',
+    },
+    cssCodeSplit: false,
   },
 });
