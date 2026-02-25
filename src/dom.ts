@@ -21,6 +21,7 @@ export interface CreateDOMOptions {
   documentName: string;
   acceptedFileTypes: string;
   loadingText: string;
+  loadingContent?: HTMLElement;
   showMenubar: boolean;
   showToolbar: boolean;
   showStatusbar: boolean;
@@ -90,12 +91,16 @@ export function createEditorDOM(options: CreateDOMOptions): EditorDOM {
 
   const loading = document.createElement('div');
   loading.className = 'lo-loading';
-  const spinner = document.createElement('div');
-  spinner.className = 'lo-spinner';
-  loading.appendChild(spinner);
-  const loadingText = document.createElement('p');
-  loadingText.textContent = options.loadingText;
-  loading.appendChild(loadingText);
+  if (options.loadingContent) {
+    loading.appendChild(options.loadingContent);
+  } else {
+    const spinner = document.createElement('div');
+    spinner.className = 'lo-spinner';
+    loading.appendChild(spinner);
+    const loadingText = document.createElement('p');
+    loadingText.textContent = options.loadingText;
+    loading.appendChild(loadingText);
+  }
   canvasContainer.appendChild(loading);
 
   // Canvas MUST have id="qtcanvas" — Emscripten requires it.

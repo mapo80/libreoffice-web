@@ -30,6 +30,7 @@ interface ResolvedOptions {
   showStatusbar: boolean;
   showFileOpen: boolean;
   loadingText: string;
+  loadingContent?: HTMLElement;
   customFonts: CustomFont[];
 }
 
@@ -188,7 +189,8 @@ export class LibreOfficeEditor {
       showMenubar: options.showMenubar ?? true,
       showStatusbar: options.showStatusbar ?? true,
       showFileOpen: options.showFileOpen ?? true,
-      loadingText: options.loadingText ?? 'ZetaOffice is loading...',
+      loadingText: options.loadingText ?? 'Word is loading...',
+      loadingContent: options.loadingContent,
       customFonts: options.customFonts ?? [],
     };
   }
@@ -199,6 +201,7 @@ export class LibreOfficeEditor {
       documentName: this.options.documentName,
       acceptedFileTypes: this.options.acceptedFileTypes,
       loadingText: this.options.loadingText,
+      loadingContent: this.options.loadingContent,
       showMenubar: this.options.showMenubar,
       showToolbar: this.options.showToolbar,
       showStatusbar: this.options.showStatusbar,

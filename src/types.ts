@@ -44,8 +44,11 @@ export interface EditorOptions {
   showStatusbar?: boolean;
   showFileOpen?: boolean;
 
-  /** Loading text displayed during WASM init. Default: `'ZetaOffice is loading...'`. */
+  /** Loading text displayed during WASM init. Default: `'ZetaOffice is loading...'`. Ignored when `loadingContent` is set. */
   loadingText?: string;
+
+  /** Custom HTML element to replace the default loading overlay (spinner + text). When set, `loadingText` is ignored. */
+  loadingContent?: HTMLElement;
 
   /** Custom fonts injected into the WASM filesystem before LibreOffice boots. */
   customFonts?: CustomFont[];
