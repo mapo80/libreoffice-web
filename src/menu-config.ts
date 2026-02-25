@@ -24,7 +24,6 @@ export const writerMenus: MenuDefinition[] = [
     label: 'File',
     items: [
       { id: 'save', label: 'Save', command: '.uno:Save', shortcut: 'Ctrl+S' },
-      { id: 'saveas', label: 'Save As...', command: '.uno:SaveAs', shortcut: 'Ctrl+Shift+S' },
       sep,
       { id: 'properties', label: 'Properties...', command: '.uno:SetDocumentProperties' },
       sep,

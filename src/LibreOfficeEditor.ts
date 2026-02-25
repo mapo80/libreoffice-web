@@ -13,6 +13,7 @@ import type { EditorOptions, EditorEventMap, CustomFont } from './types';
 
 interface EmscriptenFS {
   writeFile(path: string, data: Uint8Array): void;
+  readFile(path: string): Uint8Array;
 }
 
 /** Resolved options with all defaults filled in. */
@@ -48,6 +49,7 @@ export class LibreOfficeEditor {
   private isReady = false;
   private isDestroyed = false;
   private _readOnly = false;
+  private currentFilePath: string | null = null;
 
   constructor(options: EditorOptions) {
     if (LibreOfficeEditor.instance) {
@@ -70,8 +72,20 @@ export class LibreOfficeEditor {
     return this._readOnly;
   }
 
+  /** Read the current document from the WASM virtual filesystem. */
+  getDocumentBuffer(): ArrayBuffer | null {
+    if (!this.currentFilePath) return null;
+    try {
+      const data = this.getFS().readFile(this.currentFilePath);
+      return data.buffer as ArrayBuffer;
+    } catch {
+      return null;
+    }
+  }
+
   /** Dispatch a UNO command to LibreOffice. */
   dispatchCommand(command: string, value?: string): void {
+    console.log('[LibreOfficeEditor] dispatchCommand:', command, 'port:', !!this.port, 'readOnly:', this._readOnly);
     if (!this.port) return;
     // In read-only mode, only allow the internal EditDoc toggle (used to enter read-only).
     if (this._readOnly && command !== '.uno:EditDoc') return;
@@ -93,6 +107,7 @@ export class LibreOfficeEditor {
     const dotIndex = name.lastIndexOf('.');
     if (dotIndex > 0) filePath += name.substring(dotIndex);
 
+    this.currentFilePath = filePath;
     const data = await file.arrayBuffer();
     this.getFS().writeFile(filePath, new Uint8Array(data));
     this.port.postMessage({ cmd: 'loadDocument', fileName: filePath });
@@ -108,6 +123,7 @@ export class LibreOfficeEditor {
     const dotIndex = fileName.lastIndexOf('.');
     if (dotIndex > 0) filePath += fileName.substring(dotIndex);
 
+    this.currentFilePath = filePath;
     this.getFS().writeFile(filePath, new Uint8Array(buffer));
     this.port.postMessage({ cmd: 'loadDocument', fileName: filePath });
   }
@@ -239,11 +255,27 @@ export class LibreOfficeEditor {
     );
     this.menuRenderer.render();
 
-    // 4. File upload
+    // 4. Intercept Ctrl+S on the canvas to prevent LibreOffice WASM from
+    //    triggering its native Save dialog (which crashes in the WASM build).
+    //    Instead, route save through our dispatch mechanism.
+    this.setupKeyboardInterceptor();
+
+    // 5. File upload
     this.setupFileUpload();
 
-    // 5. Bootstrap WASM
+    // 6. Bootstrap WASM
     this.bootstrap();
+  }
+
+  private setupKeyboardInterceptor(): void {
+    // Use capture phase to intercept before Emscripten's handler.
+    this.dom.canvas.addEventListener('keydown', (e) => {
+      if ((e.ctrlKey || e.metaKey) && e.key === 's') {
+        e.preventDefault();
+        e.stopImmediatePropagation();
+        this.dispatchCommand('.uno:Save');
+      }
+    }, true);
   }
 
   private setupFileUpload(): void {
@@ -288,6 +320,10 @@ export class LibreOfficeEditor {
             this.port.postMessage({ cmd: 'dispatch', command: '.uno:EditDoc' });
           }
           this.emitter.emit('document-loaded', undefined as never);
+        },
+        onDocSaved: (buffer) => {
+          const fileName = this.dom.docName.textContent || 'document';
+          this.emitter.emit('document-saved', { buffer, fileName });
         },
       },
       this.options.customFonts,

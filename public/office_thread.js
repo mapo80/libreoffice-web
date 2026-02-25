@@ -12,6 +12,7 @@ let zetajs, css;
 
 // common variables:
 let context, desktop, xModel, ctrl;
+var currentFilePath = null;
 
 // All UNO commands we track for toolbar state updates.
 var trackedCommands = [
@@ -59,13 +60,39 @@ function demo() {
   zetajs.mainPort.onmessage = function (e) {
     switch (e.data.cmd) {
     case 'dispatch':
-      if (e.data.value !== undefined) {
+      console.log('[office_thread] dispatch received:', e.data.command, 'currentFilePath:', currentFilePath);
+      // Intercept Save: use storeToURL directly to avoid the native file picker dialog
+      // which crashes in the WASM environment.
+      if (e.data.command === '.uno:Save' && currentFilePath) {
+        try {
+          // storeToURL writes through LibreOffice's VFS. The worker's Emscripten FS is
+          // separate from the main thread's, so we cannot FS.readFile here.
+          // Instead, save to the original path and ask the main thread to read it.
+          var filterName = 'MS Word 2007 XML';
+          var ext = currentFilePath.substring(currentFilePath.lastIndexOf('.'));
+          if (ext === '.odt') filterName = 'writer8';
+          else if (ext === '.ods') filterName = 'calc8';
+          else if (ext === '.xlsx') filterName = 'Calc MS Excel 2007 XML';
+          var storeProps = [
+            new css.beans.PropertyValue({ Name: 'FilterName', Value: filterName }),
+            new css.beans.PropertyValue({ Name: 'Overwrite', Value: true }),
+          ];
+          console.log('[office_thread] storeToURL:', 'file://' + currentFilePath, 'filter:', filterName);
+          xModel.storeToURL('file://' + currentFilePath, storeProps);
+          console.log('[office_thread] storeToURL succeeded, asking main thread to read file');
+          zetajs.mainPort.postMessage({cmd: 'read_saved_file', path: currentFilePath});
+        } catch (ex) {
+          console.error('[office_thread] Save failed:', ex);
+        }
+      } else if (e.data.value !== undefined) {
         dispatchWithParam(e.data.command, e.data.value);
       } else {
         dispatch(e.data.command);
       }
       break;
     case 'loadDocument':
+      console.log('[office_thread] loadDocument:', e.data.fileName);
+      currentFilePath = e.data.fileName;
       xModel.close(true);
       xModel = desktop.loadComponentFromURL('file://' + e.data.fileName, '_default', 0, []);
       ctrl = xModel.getCurrentController();

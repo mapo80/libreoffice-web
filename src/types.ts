@@ -67,6 +67,8 @@ export interface EditorEventMap {
   'font-list': { fonts: string[] };
   /** A document finished loading. */
   'document-loaded': void;
+  /** The document was saved. Contains the saved file as ArrayBuffer. */
+  'document-saved': { buffer: ArrayBuffer; fileName: string };
   /** The editor has been destroyed. */
   destroyed: void;
   /** An error occurred. */

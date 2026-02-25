@@ -5,6 +5,7 @@ import type { CustomFont } from './types';
 
 declare const FS: {
   writeFile(path: string, data: Uint8Array): void;
+  readFile(path: string): Uint8Array;
   mkdir(path: string): void;
 };
 
@@ -19,6 +20,7 @@ export interface BootstrapCallbacks {
   onStateChanged: (command: string, value: unknown, enabled: boolean) => void;
   onFontList: (fonts: string[]) => void;
   onDocLoaded: () => void;
+  onDocSaved: (buffer: ArrayBuffer) => void;
 }
 
 /** Resolved font data ready to be written to the virtual FS. */
@@ -170,6 +172,21 @@ export async function bootstrapSoffice(
               break;
             case 'fontList':
               callbacks.onFontList(e.data.fonts);
+              break;
+            case 'doc_saved':
+              console.log('[bootstrap] doc_saved received, buffer size:', (e.data.data as Uint8Array).length);
+              callbacks.onDocSaved((e.data.data as Uint8Array).buffer as ArrayBuffer);
+              break;
+            case 'read_saved_file':
+              // Worker's Emscripten FS is separate; read from the main thread's FS.
+              try {
+                console.log('[bootstrap] read_saved_file, path:', e.data.path);
+                const savedData = FS.readFile(e.data.path);
+                console.log('[bootstrap] readFile succeeded, size:', savedData.length);
+                callbacks.onDocSaved(savedData.buffer as ArrayBuffer);
+              } catch (err) {
+                console.error('[bootstrap] Failed to read saved file:', err);
+              }
               break;
             default:
               console.warn('Unknown message from worker:', e.data.cmd);
