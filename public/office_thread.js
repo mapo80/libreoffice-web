@@ -79,6 +79,7 @@ function demo() {
           ];
           console.log('[office_thread] storeToURL:', 'file://' + currentFilePath, 'filter:', filterName);
           xModel.storeToURL('file://' + currentFilePath, storeProps);
+          xModel.setModified(false);
           console.log('[office_thread] storeToURL succeeded, asking main thread to read file');
           zetajs.mainPort.postMessage({cmd: 'read_saved_file', path: currentFilePath});
         } catch (ex) {
