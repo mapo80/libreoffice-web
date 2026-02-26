@@ -223,6 +223,8 @@ function dispatchWithParam(unoCommand, value) {
       new css.beans.PropertyValue({ Name: 'FontHeight.Prop', Value: zetajs.Any('short', 100) }),
       new css.beans.PropertyValue({ Name: 'FontHeight.Diff', Value: zetajs.Any('float', 0) }),
     ];
+  } else if (unoCommand === '.uno:InsertText') {
+    args = [new css.beans.PropertyValue({ Name: 'Text', Value: value })];
   } else if (unoCommand === '.uno:Color' || unoCommand === '.uno:CharBackColor' || unoCommand === '.uno:BackgroundColor') {
     args = [new css.beans.PropertyValue({
       Name: unoCommand.replace('.uno:', '') + '.Color',

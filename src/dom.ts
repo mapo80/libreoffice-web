@@ -11,6 +11,7 @@ export interface EditorDOM {
   navActions: HTMLDivElement;
   toolbarWrapper: HTMLDivElement;
   toolbar: HTMLDivElement;
+  templateToolbar: HTMLDivElement;
   canvasContainer: HTMLElement;
   loading: HTMLDivElement;
   canvas: HTMLCanvasElement;
@@ -24,6 +25,7 @@ export interface CreateDOMOptions {
   loadingContent?: HTMLElement;
   showMenubar: boolean;
   showToolbar: boolean;
+  showTemplateToolbar: boolean;
   showStatusbar: boolean;
   showFileOpen: boolean;
 }
@@ -82,6 +84,12 @@ export function createEditorDOM(options: CreateDOMOptions): EditorDOM {
   const toolbar = document.createElement('div');
   toolbar.className = 'lo-toolbar';
   toolbarWrapper.appendChild(toolbar);
+
+  const templateToolbar = document.createElement('div');
+  templateToolbar.className = 'lo-template-toolbar';
+  if (!options.showTemplateToolbar) templateToolbar.style.display = 'none';
+  toolbarWrapper.appendChild(templateToolbar);
+
   root.appendChild(toolbarWrapper);
 
   // --- 3. CANVAS CONTAINER ---
@@ -157,6 +165,7 @@ export function createEditorDOM(options: CreateDOMOptions): EditorDOM {
     navActions,
     toolbarWrapper,
     toolbar,
+    templateToolbar,
     canvasContainer,
     loading,
     canvas,

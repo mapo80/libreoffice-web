@@ -55,6 +55,9 @@ export interface EditorOptions {
 
   /** Open document in read-only mode. Hides toolbar/menubar, disables editing commands. Default: `false`. */
   readOnly?: boolean;
+
+  /** Show the template-tag toolbar (second row) for inserting DocumentAssembler template tags. Default: `false`. */
+  showTemplateToolbar?: boolean;
 }
 
 /** Map of events emitted by LibreOfficeEditor. */

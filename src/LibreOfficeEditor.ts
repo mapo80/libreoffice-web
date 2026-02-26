@@ -6,6 +6,7 @@ import { EventEmitter } from './event-emitter';
 import { createEditorDOM, type EditorDOM } from './dom';
 import { ToolbarRenderer } from './toolbar-renderer';
 import { MenuRenderer } from './menu-renderer';
+import { TemplateToolbar } from './template-toolbar';
 import { bootstrapSoffice } from './bootstrap';
 import { writerToolbar, trackedCommands } from './toolbar-config';
 import { writerMenus } from './menu-config';
@@ -34,6 +35,7 @@ interface ResolvedOptions {
   loadingContent?: HTMLElement;
   customFonts: CustomFont[];
   readOnly: boolean;
+  showTemplateToolbar: boolean;
 }
 
 export class LibreOfficeEditor {
@@ -45,6 +47,7 @@ export class LibreOfficeEditor {
   private dom!: EditorDOM;
   private toolbarRenderer!: ToolbarRenderer;
   private menuRenderer!: MenuRenderer;
+  private templateToolbar!: TemplateToolbar;
   private port: MessagePort | null = null;
   private isReady = false;
   private isDestroyed = false;
@@ -174,6 +177,25 @@ export class LibreOfficeEditor {
     this.dom.statusbar.style.display = visible ? '' : 'none';
   }
 
+  /** Insert text at the current cursor position. */
+  insertText(text: string): void {
+    this.dispatchCommand('.uno:InsertText', text);
+  }
+
+  /** Insert multiple lines, each separated by a paragraph break. */
+  insertTextBlock(lines: string[]): void {
+    if (!this.port || lines.length === 0) return;
+    for (let i = 0; i < lines.length; i++) {
+      if (i > 0) this.dispatchCommand('.uno:InsertPara');
+      if (lines[i]) this.dispatchCommand('.uno:InsertText', lines[i]);
+    }
+  }
+
+  /** Show or hide the template-tag toolbar. */
+  setTemplateToolbarVisible(visible: boolean): void {
+    this.dom.templateToolbar.style.display = visible ? '' : 'none';
+  }
+
   /** Focus the canvas. */
   focus(): void {
     this.dom.canvas.focus();
@@ -185,6 +207,7 @@ export class LibreOfficeEditor {
     this.isDestroyed = true;
 
     this.toolbarRenderer.destroy();
+    this.templateToolbar.destroy();
     this.menuRenderer.destroy();
 
     // Remove DOM subtree
@@ -220,6 +243,7 @@ export class LibreOfficeEditor {
       loadingContent: options.loadingContent,
       customFonts: options.customFonts ?? [],
       readOnly,
+      showTemplateToolbar: readOnly ? false : (options.showTemplateToolbar ?? false),
     };
   }
 
@@ -232,6 +256,7 @@ export class LibreOfficeEditor {
       loadingContent: this.options.loadingContent,
       showMenubar: this.options.showMenubar,
       showToolbar: this.options.showToolbar,
+      showTemplateToolbar: this.options.showTemplateToolbar,
       showStatusbar: this.options.showStatusbar,
       showFileOpen: this.options.showFileOpen,
     });
@@ -246,7 +271,15 @@ export class LibreOfficeEditor {
     );
     this.toolbarRenderer.render();
 
-    // 3. Render menubar
+    // 3. Render template toolbar
+    this.templateToolbar = new TemplateToolbar(
+      this.dom.templateToolbar,
+      (text) => this.insertText(text),
+      (lines) => this.insertTextBlock(lines),
+    );
+    this.templateToolbar.render();
+
+    // 4. Render menubar
     this.menuRenderer = new MenuRenderer(
       this.dom.menu,
       this.dom.canvas,
@@ -255,15 +288,15 @@ export class LibreOfficeEditor {
     );
     this.menuRenderer.render();
 
-    // 4. Intercept Ctrl+S on the canvas to prevent LibreOffice WASM from
+    // 5. Intercept Ctrl+S on the canvas to prevent LibreOffice WASM from
     //    triggering its native Save dialog (which crashes in the WASM build).
     //    Instead, route save through our dispatch mechanism.
     this.setupKeyboardInterceptor();
 
-    // 5. File upload
+    // 6. File upload
     this.setupFileUpload();
 
-    // 6. Bootstrap WASM
+    // 7. Bootstrap WASM
     this.bootstrap();
   }
 
@@ -302,6 +335,7 @@ export class LibreOfficeEditor {
           this.dom.canvas.style.visibility = '';
           if (!this._readOnly) {
             this.toolbarRenderer.enableAll();
+            this.templateToolbar.enableAll();
             this.dom.fileInput.disabled = false;
           }
           this.emitter.emit('ready', undefined as never);

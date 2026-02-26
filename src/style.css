@@ -317,6 +317,224 @@
 }
 
 /* ============================================
+   2b. TEMPLATE TOOLBAR (second row)
+   ============================================ */
+
+.lo-editor .lo-template-toolbar {
+  display: flex;
+  align-items: center;
+  padding: 2px 4px;
+  min-height: 32px;
+  gap: 0;
+  border-top: 1px solid var(--lo-color-border);
+  background: var(--lo-color-bg);
+}
+
+.lo-editor .lo-template-group {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  padding: 0 4px;
+}
+
+.lo-editor .lo-template-group + .lo-template-group {
+  border-left: 1px solid var(--lo-color-btn-border);
+  margin-left: 4px;
+  padding-left: 8px;
+}
+
+.lo-editor .lo-template-btn {
+  display: inline-flex;
+  align-items: center;
+  height: 24px;
+  padding: 0 10px;
+  border: 1px solid rgba(var(--lo-doc-type), 0.3);
+  border-radius: var(--lo-border-radius);
+  background: rgba(var(--lo-doc-type), 0.08);
+  color: var(--lo-color-text-dark);
+  font-size: 12px;
+  font-weight: 500;
+  font-family: inherit;
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+.lo-editor .lo-template-btn:hover:not(:disabled) {
+  background: rgba(var(--lo-doc-type), 0.18);
+  border-color: rgba(var(--lo-doc-type), 0.5);
+}
+
+.lo-editor .lo-template-btn:disabled {
+  opacity: 0.4;
+  cursor: default;
+}
+
+/* ============================================
+   2c. TEMPLATE DIALOG
+   ============================================ */
+
+.lo-template-dialog-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 10000;
+  background: rgba(0, 0, 0, 0.3);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+}
+
+.lo-template-dialog {
+  background: #fff;
+  border-radius: 8px;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
+  width: 380px;
+  max-width: 90vw;
+  overflow: hidden;
+}
+
+.lo-template-dialog-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 12px 16px;
+  border-bottom: 1px solid #e1dfdd;
+  font-size: 14px;
+  font-weight: 600;
+  color: #333;
+}
+
+.lo-template-dialog-close {
+  border: none;
+  background: none;
+  font-size: 20px;
+  cursor: pointer;
+  color: #696969;
+  padding: 0 4px;
+  line-height: 1;
+}
+
+.lo-template-dialog-close:hover {
+  color: #333;
+}
+
+.lo-template-dialog-form {
+  padding: 16px;
+}
+
+.lo-template-dialog-field {
+  margin-bottom: 12px;
+}
+
+.lo-template-dialog-field label {
+  display: block;
+  font-size: 12px;
+  font-weight: 500;
+  color: #555;
+  margin-bottom: 4px;
+}
+
+.lo-template-dialog-field input[type="text"] {
+  display: block;
+  width: 100%;
+  height: 32px;
+  padding: 0 8px;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  font-size: 13px;
+  font-family: inherit;
+  color: #333;
+  outline: none;
+  margin-top: 4px;
+}
+
+.lo-template-dialog-field input[type="text"]:focus {
+  border-color: rgb(3, 105, 163);
+  box-shadow: 0 0 0 2px rgba(3, 105, 163, 0.15);
+}
+
+.lo-template-dialog-checkbox {
+  display: flex !important;
+  align-items: center;
+  gap: 6px;
+  font-size: 13px !important;
+  cursor: pointer;
+}
+
+.lo-template-dialog-checkbox input[type="checkbox"] {
+  width: 16px;
+  height: 16px;
+  margin: 0;
+  cursor: pointer;
+}
+
+.lo-template-dialog-radio-group {
+  border: none;
+  padding: 0;
+  margin: 0;
+}
+
+.lo-template-dialog-radio-group legend {
+  font-size: 12px;
+  font-weight: 500;
+  color: #555;
+  margin-bottom: 6px;
+}
+
+.lo-template-dialog-radio {
+  display: flex !important;
+  align-items: center;
+  gap: 6px;
+  font-size: 13px !important;
+  cursor: pointer;
+  margin-bottom: 4px;
+}
+
+.lo-template-dialog-radio input[type="radio"] {
+  margin: 0;
+  cursor: pointer;
+}
+
+.lo-template-dialog-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+  margin-top: 16px;
+  padding-top: 12px;
+  border-top: 1px solid #e1dfdd;
+}
+
+.lo-template-dialog-btn {
+  height: 32px;
+  padding: 0 16px;
+  border-radius: 4px;
+  font-size: 13px;
+  font-family: inherit;
+  font-weight: 500;
+  cursor: pointer;
+  border: 1px solid #ccc;
+}
+
+.lo-template-dialog-btn-cancel {
+  background: #fff;
+  color: #555;
+}
+
+.lo-template-dialog-btn-cancel:hover {
+  background: #f0f0f0;
+}
+
+.lo-template-dialog-btn-insert {
+  background: rgb(3, 105, 163);
+  color: #fff;
+  border-color: rgb(3, 105, 163);
+}
+
+.lo-template-dialog-btn-insert:hover {
+  background: rgb(2, 85, 133);
+}
+
+/* ============================================
    3. DOCUMENT CANVAS
    ============================================ */
 
