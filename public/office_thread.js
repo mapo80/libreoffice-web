@@ -106,6 +106,53 @@ function demo() {
       // Tell main thread to trigger resize:
       zetajs.mainPort.postMessage({cmd: 'doc_loaded'});
       break;
+    case 'insertContentControl': {
+      // Insert a plain-text content control (SDT) at the current cursor position.
+      var tagText = e.data.text;
+      try {
+        var xText = xModel.getText();
+        var xViewCursor = ctrl.getViewCursor();
+        var xTextCursor = xText.createTextCursorByRange(xViewCursor);
+
+        // Insert the tag text and select it.
+        xText.insertString(xTextCursor, tagText, false);
+        xTextCursor.goLeft(tagText.length, true);
+
+        // Create a plain-text content control wrapping the selected text.
+        var xCC = xModel.createInstance('com.sun.star.text.ContentControl');
+        xCC.setPropertyValue('PlainText', true);
+        xText.insertTextContent(xTextCursor, xCC, true);
+      } catch (ex) {
+        console.error('[office_thread] insertContentControl failed:', ex);
+      }
+      break;
+    }
+    case 'insertContentControlBlock': {
+      // Insert multiple content controls separated by paragraph breaks.
+      // items: array of {text: string} (content control) or {para: true} (paragraph break)
+      var items = e.data.items;
+      try {
+        var xText = xModel.getText();
+        for (var idx = 0; idx < items.length; idx++) {
+          var item = items[idx];
+          if (item.para) {
+            // Insert a paragraph break via dispatch (reliable cursor advance).
+            dispatch('.uno:InsertPara');
+          } else if (item.text) {
+            var xViewCursor = ctrl.getViewCursor();
+            var xTextCursor = xText.createTextCursorByRange(xViewCursor);
+            xText.insertString(xTextCursor, item.text, false);
+            xTextCursor.goLeft(item.text.length, true);
+            var xCC = xModel.createInstance('com.sun.star.text.ContentControl');
+            xCC.setPropertyValue('PlainText', true);
+            xText.insertTextContent(xTextCursor, xCC, true);
+          }
+        }
+      } catch (ex) {
+        console.error('[office_thread] insertContentControlBlock failed:', ex);
+      }
+      break;
+    }
     default:
       throw Error('Unknown message command: ' + e.data.cmd);
     }

@@ -191,6 +191,26 @@ export class LibreOfficeEditor {
     }
   }
 
+  /** Insert a plain-text content control (SDT) at the current cursor position. */
+  insertContentControl(text: string): void {
+    if (!this.port) return;
+    this.port.postMessage({ cmd: 'insertContentControl', text });
+  }
+
+  /**
+   * Insert multiple content controls separated by paragraph breaks.
+   * Non-empty strings become content controls; empty strings become paragraph breaks.
+   */
+  insertContentControlBlock(lines: string[]): void {
+    if (!this.port || lines.length === 0) return;
+    const items: Array<{ text: string } | { para: true }> = [];
+    for (let i = 0; i < lines.length; i++) {
+      if (i > 0) items.push({ para: true });
+      if (lines[i]) items.push({ text: lines[i] });
+    }
+    this.port.postMessage({ cmd: 'insertContentControlBlock', items });
+  }
+
   /** Show or hide the template-tag toolbar. */
   setTemplateToolbarVisible(visible: boolean): void {
     this.dom.templateToolbar.style.display = visible ? '' : 'none';
@@ -274,8 +294,8 @@ export class LibreOfficeEditor {
     // 3. Render template toolbar
     this.templateToolbar = new TemplateToolbar(
       this.dom.templateToolbar,
-      (text) => this.insertText(text),
-      (lines) => this.insertTextBlock(lines),
+      (text) => this.insertContentControl(text),
+      (lines) => this.insertContentControlBlock(lines),
     );
     this.templateToolbar.render();
 
