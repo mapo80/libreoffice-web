@@ -21,6 +21,7 @@ export interface BootstrapCallbacks {
   onFontList: (fonts: string[]) => void;
   onDocLoaded: () => void;
   onDocSaved: (buffer: ArrayBuffer) => void;
+  onModifiedQuery: (isModified: boolean) => void;
 }
 
 /** Resolved font data ready to be written to the virtual FS. */
@@ -187,6 +188,9 @@ export async function bootstrapSoffice(
               } catch (err) {
                 console.error('[bootstrap] Failed to read saved file:', err);
               }
+              break;
+            case 'queryModified-response':
+              callbacks.onModifiedQuery(e.data.isModified);
               break;
             default:
               console.warn('Unknown message from worker:', e.data.cmd);

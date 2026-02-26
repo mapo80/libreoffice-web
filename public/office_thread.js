@@ -153,6 +153,12 @@ function demo() {
       }
       break;
     }
+    case 'queryModified':
+      zetajs.mainPort.postMessage({
+        cmd: 'queryModified-response',
+        isModified: xModel.isModified(),
+      });
+      break;
     default:
       throw Error('Unknown message command: ' + e.data.cmd);
     }

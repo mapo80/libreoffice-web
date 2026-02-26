@@ -53,6 +53,7 @@ export class LibreOfficeEditor {
   private isDestroyed = false;
   private _readOnly = false;
   private currentFilePath: string | null = null;
+  private _modifiedResolve: ((v: boolean) => void) | null = null;
 
   constructor(options: EditorOptions) {
     if (LibreOfficeEditor.instance) {
@@ -209,6 +210,15 @@ export class LibreOfficeEditor {
       if (lines[i]) items.push({ text: lines[i] });
     }
     this.port.postMessage({ cmd: 'insertContentControlBlock', items });
+  }
+
+  /** Check whether the document has unsaved modifications. */
+  isModified(): Promise<boolean> {
+    if (!this.port) return Promise.resolve(false);
+    return new Promise<boolean>((resolve) => {
+      this._modifiedResolve = resolve;
+      this.port!.postMessage({ cmd: 'queryModified' });
+    });
   }
 
   /** Show or hide the template-tag toolbar. */
@@ -378,6 +388,12 @@ export class LibreOfficeEditor {
         onDocSaved: (buffer) => {
           const fileName = this.dom.docName.textContent || 'document';
           this.emitter.emit('document-saved', { buffer, fileName });
+        },
+        onModifiedQuery: (isModified) => {
+          if (this._modifiedResolve) {
+            this._modifiedResolve(isModified);
+            this._modifiedResolve = null;
+          }
         },
       },
       this.options.customFonts,
