@@ -120,12 +120,16 @@ export class LibreOfficeEditor {
   }
 
   /** Load a document from an ArrayBuffer with a given filename. */
+  private loadCounter = 0;
+
   loadDocumentFromBuffer(buffer: ArrayBuffer, fileName: string): void {
     if (!this.port) throw new Error('Editor not ready');
 
     this.dom.docName.textContent = fileName;
 
-    let filePath = '/tmp/input';
+    // Use a unique path for each load to force LibreOffice to treat it as a new document.
+    const seq = ++this.loadCounter;
+    let filePath = `/tmp/input_${seq}`;
     const dotIndex = fileName.lastIndexOf('.');
     if (dotIndex > 0) filePath += fileName.substring(dotIndex);
 
