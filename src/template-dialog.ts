@@ -4,11 +4,16 @@
 export interface DialogField {
   name: string;
   label: string;
-  type: 'text' | 'checkbox' | 'radio';
+  type: 'text' | 'checkbox' | 'radio' | 'select';
   required?: boolean;
   placeholder?: string;
   options?: { value: string; label: string }[];
   defaultValue?: string;
+}
+
+export interface ListItem {
+  label: string;
+  subtitle?: string;
 }
 
 export class TemplateDialog {
@@ -19,6 +24,7 @@ export class TemplateDialog {
   static show(
     title: string,
     fields: DialogField[],
+    submitLabel = 'Insert',
   ): Promise<Record<string, string> | null> {
     return new Promise((resolve) => {
       // --- Overlay ---
@@ -46,13 +52,29 @@ export class TemplateDialog {
       const form = document.createElement('form');
       form.className = 'lo-template-dialog-form';
 
-      const inputs = new Map<string, HTMLInputElement>();
+      const inputs = new Map<string, HTMLInputElement | HTMLSelectElement>();
 
       for (const field of fields) {
         const wrapper = document.createElement('div');
         wrapper.className = 'lo-template-dialog-field';
 
-        if (field.type === 'text') {
+        if (field.type === 'select' && field.options) {
+          const label = document.createElement('label');
+          label.textContent = field.label;
+          const select = document.createElement('select');
+          select.name = field.name;
+          if (field.required) select.required = true;
+          for (const opt of field.options) {
+            const option = document.createElement('option');
+            option.value = opt.value;
+            option.textContent = opt.label;
+            if (opt.value === (field.defaultValue ?? '')) option.selected = true;
+            select.appendChild(option);
+          }
+          label.appendChild(select);
+          wrapper.appendChild(label);
+          inputs.set(field.name, select);
+        } else if (field.type === 'text') {
           const label = document.createElement('label');
           label.textContent = field.label;
           const input = document.createElement('input');
@@ -121,7 +143,7 @@ export class TemplateDialog {
       const insertBtn = document.createElement('button');
       insertBtn.type = 'submit';
       insertBtn.className = 'lo-template-dialog-btn lo-template-dialog-btn-insert';
-      insertBtn.textContent = 'Insert';
+      insertBtn.textContent = submitLabel;
 
       actions.appendChild(cancelBtn);
       actions.appendChild(insertBtn);
@@ -150,15 +172,18 @@ export class TemplateDialog {
         const result: Record<string, string> = {};
         for (const field of fields) {
           if (field.type === 'checkbox') {
-            const input = inputs.get(field.name);
+            const input = inputs.get(field.name) as HTMLInputElement | undefined;
             result[field.name] = input?.checked ? 'true' : 'false';
           } else if (field.type === 'radio') {
             const checked = form.querySelector<HTMLInputElement>(
               `input[name="${field.name}"]:checked`,
             );
             result[field.name] = checked?.value ?? '';
+          } else if (field.type === 'select') {
+            const select = inputs.get(field.name) as HTMLSelectElement | undefined;
+            result[field.name] = select?.value ?? '';
           } else {
-            const input = inputs.get(field.name);
+            const input = inputs.get(field.name) as HTMLInputElement | undefined;
             result[field.name] = input?.value.trim() ?? '';
           }
         }
@@ -179,6 +204,99 @@ export class TemplateDialog {
       overlay.addEventListener('keydown', (e) => {
         if (e.key === 'Escape') cancel();
       });
+    });
+  }
+
+  /**
+   * Show a read-only list dialog. Each item is clickable.
+   * Resolves with the index of the clicked item, or `null` on close.
+   */
+  static showList(
+    title: string,
+    items: ListItem[],
+    emptyMessage = 'No items found.',
+  ): Promise<number | null> {
+    return new Promise((resolve) => {
+      const overlay = document.createElement('div');
+      overlay.className = 'lo-template-dialog-overlay';
+
+      const dialog = document.createElement('div');
+      dialog.className = 'lo-template-dialog';
+
+      // Header
+      const header = document.createElement('div');
+      header.className = 'lo-template-dialog-header';
+      const titleEl = document.createElement('span');
+      titleEl.textContent = title;
+      const closeBtn = document.createElement('button');
+      closeBtn.className = 'lo-template-dialog-close';
+      closeBtn.textContent = '\u00d7';
+      closeBtn.type = 'button';
+      header.appendChild(titleEl);
+      header.appendChild(closeBtn);
+      dialog.appendChild(header);
+
+      // List body
+      const listContainer = document.createElement('div');
+      listContainer.className = 'lo-template-dialog-list';
+
+      if (items.length === 0) {
+        const empty = document.createElement('div');
+        empty.className = 'lo-template-dialog-list-empty';
+        empty.textContent = emptyMessage;
+        listContainer.appendChild(empty);
+      } else {
+        for (let i = 0; i < items.length; i++) {
+          const row = document.createElement('div');
+          row.className = 'lo-template-dialog-list-item';
+          row.tabIndex = 0;
+
+          const labelSpan = document.createElement('span');
+          labelSpan.className = 'lo-template-dialog-list-label';
+          labelSpan.textContent = items[i].label;
+          row.appendChild(labelSpan);
+
+          if (items[i].subtitle) {
+            const sub = document.createElement('span');
+            sub.className = 'lo-template-dialog-list-subtitle';
+            sub.textContent = items[i].subtitle!;
+            row.appendChild(sub);
+          }
+
+          const idx = i;
+          row.addEventListener('click', () => {
+            cleanup();
+            resolve(idx);
+          });
+          row.addEventListener('keydown', (e) => {
+            if (e.key === 'Enter') { cleanup(); resolve(idx); }
+          });
+          listContainer.appendChild(row);
+        }
+      }
+
+      dialog.appendChild(listContainer);
+
+      // Close button
+      const actions = document.createElement('div');
+      actions.className = 'lo-template-dialog-actions';
+      const closeBtnAction = document.createElement('button');
+      closeBtnAction.type = 'button';
+      closeBtnAction.className = 'lo-template-dialog-btn lo-template-dialog-btn-cancel';
+      closeBtnAction.textContent = 'Close';
+      actions.appendChild(closeBtnAction);
+      dialog.appendChild(actions);
+
+      overlay.appendChild(dialog);
+      document.body.appendChild(overlay);
+
+      const cleanup = () => { document.body.removeChild(overlay); };
+      const cancel = () => { cleanup(); resolve(null); };
+
+      closeBtn.addEventListener('click', cancel);
+      closeBtnAction.addEventListener('click', cancel);
+      overlay.addEventListener('click', (e) => { if (e.target === overlay) cancel(); });
+      overlay.addEventListener('keydown', (e) => { if (e.key === 'Escape') cancel(); });
     });
   }
 }

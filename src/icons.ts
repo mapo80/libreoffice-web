@@ -41,6 +41,19 @@ import lc_superscript from './images/lc_superscript.svg?raw';
 import lc_underline from './images/lc_underline.svg?raw';
 import lc_undo from './images/lc_undo.svg?raw';
 
+// Template tag icons (blue accent)
+import ic_tag_content from './images/ic_tag_content.svg?raw';
+import ic_tag_table from './images/ic_tag_table.svg?raw';
+import ic_tag_repeat from './images/ic_tag_repeat.svg?raw';
+import ic_tag_if from './images/ic_tag_if.svg?raw';
+import ic_tag_signature from './images/ic_tag_signature.svg?raw';
+import ic_tag_edit from './images/ic_tag_edit.svg?raw';
+
+// Merge field icons (green accent)
+import ic_merge_insert from './images/ic_merge_insert.svg?raw';
+import ic_merge_edit from './images/ic_merge_edit.svg?raw';
+import ic_merge_list from './images/ic_merge_list.svg?raw';
+
 /** Map from icon filename to raw SVG string. */
 export const ICONS: Record<string, string> = {
   'lc_backgroundcolor.svg': lc_backgroundcolor,
@@ -82,4 +95,15 @@ export const ICONS: Record<string, string> = {
   'lc_superscript.svg': lc_superscript,
   'lc_underline.svg': lc_underline,
   'lc_undo.svg': lc_undo,
+  // Template tag icons
+  'ic_tag_content.svg': ic_tag_content,
+  'ic_tag_table.svg': ic_tag_table,
+  'ic_tag_repeat.svg': ic_tag_repeat,
+  'ic_tag_if.svg': ic_tag_if,
+  'ic_tag_signature.svg': ic_tag_signature,
+  'ic_tag_edit.svg': ic_tag_edit,
+  // Merge field icons
+  'ic_merge_insert.svg': ic_merge_insert,
+  'ic_merge_edit.svg': ic_merge_edit,
+  'ic_merge_list.svg': ic_merge_list,
 };

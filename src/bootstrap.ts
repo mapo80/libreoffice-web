@@ -1,7 +1,7 @@
 // TypeScript rewrite of public/soffice-bootstrap.js.
 // Bootstraps the Emscripten/zetajs WASM runtime and returns a MessagePort.
 
-import type { CustomFont } from './types';
+import type { CustomFont, MergeFieldInfo } from './types';
 
 declare const FS: {
   writeFile(path: string, data: Uint8Array): void;
@@ -22,6 +22,8 @@ export interface BootstrapCallbacks {
   onDocLoaded: () => void;
   onDocSaved: (buffer: ArrayBuffer) => void;
   onModifiedQuery: (isModified: boolean) => void;
+  onMergeFieldsEnum: (fields: MergeFieldInfo[]) => void;
+  onContentControlRead: (result: { text: string; index: number } | null) => void;
 }
 
 /** Resolved font data ready to be written to the virtual FS. */
@@ -192,6 +194,14 @@ export async function bootstrapSoffice(
             case 'queryModified-response':
               callbacks.onModifiedQuery(e.data.isModified);
               break;
+            case 'enumerateMergeFields-response':
+              callbacks.onMergeFieldsEnum(e.data.fields as MergeFieldInfo[]);
+              break;
+            case 'readContentControlAtCursor-response': {
+              const r = e.data.result as { text: string | null; index: number };
+              callbacks.onContentControlRead(r.text != null ? { text: r.text, index: r.index } : null);
+              break;
+            }
             default:
               console.warn('Unknown message from worker:', e.data.cmd);
           }

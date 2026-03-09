@@ -10,7 +10,7 @@ import { TemplateToolbar } from './template-toolbar';
 import { bootstrapSoffice } from './bootstrap';
 import { writerToolbar, trackedCommands } from './toolbar-config';
 import { writerMenus } from './menu-config';
-import type { EditorOptions, EditorEventMap, CustomFont } from './types';
+import type { EditorOptions, EditorEventMap, CustomFont, MergeFieldInfo } from './types';
 
 interface EmscriptenFS {
   writeFile(path: string, data: Uint8Array): void;
@@ -54,6 +54,8 @@ export class LibreOfficeEditor {
   private _readOnly = false;
   private currentFilePath: string | null = null;
   private _modifiedResolve: ((v: boolean) => void) | null = null;
+  private _mergeFieldsResolve: ((v: MergeFieldInfo[]) => void) | null = null;
+  private _ccReadResolve: ((v: { text: string; index: number } | null) => void) | null = null;
 
   constructor(options: EditorOptions) {
     if (LibreOfficeEditor.instance) {
@@ -226,6 +228,48 @@ export class LibreOfficeEditor {
     this.dom.templateToolbar.style.display = visible ? '' : 'none';
   }
 
+  /** Insert a MERGEFIELD at the current cursor position. */
+  insertMergeField(fieldName: string): void {
+    if (!this.port) return;
+    this.port.postMessage({ cmd: 'insertMergeField', fieldName });
+  }
+
+  /** Enumerate all merge fields in the document. */
+  enumerateMergeFields(): Promise<MergeFieldInfo[]> {
+    if (!this.port) return Promise.resolve([]);
+    return new Promise<MergeFieldInfo[]>((resolve) => {
+      this._mergeFieldsResolve = resolve;
+      this.port!.postMessage({ cmd: 'enumerateMergeFields' });
+    });
+  }
+
+  /** Update an existing merge field by renaming it. */
+  updateMergeField(oldFieldName: string, newFieldName: string, index?: number): void {
+    if (!this.port) return;
+    this.port.postMessage({ cmd: 'updateMergeField', oldFieldName, newFieldName, index });
+  }
+
+  /** Read the content control at the current cursor position. */
+  readContentControlAtCursor(): Promise<{ text: string; index: number } | null> {
+    if (!this.port) return Promise.resolve(null);
+    return new Promise((resolve) => {
+      this._ccReadResolve = resolve;
+      this.port!.postMessage({ cmd: 'readContentControlAtCursor' });
+    });
+  }
+
+  /** Update the text of a content control by its index. */
+  updateContentControlText(index: number, newText: string): void {
+    if (!this.port) return;
+    this.port.postMessage({ cmd: 'updateContentControlText', index, newText });
+  }
+
+  /** Navigate to a specific merge field in the document. */
+  navigateToMergeField(fieldName: string, index?: number): void {
+    if (!this.port) return;
+    this.port.postMessage({ cmd: 'navigateToMergeField', fieldName, index: index ?? 0 });
+  }
+
   /** Focus the canvas. */
   focus(): void {
     this.dom.canvas.focus();
@@ -306,6 +350,16 @@ export class LibreOfficeEditor {
       this.dom.templateToolbar,
       (text) => this.insertContentControl(text),
       (lines) => this.insertContentControlBlock(lines),
+      {
+        onInsert: (fieldName) => this.insertMergeField(fieldName),
+        onEnumerate: () => this.enumerateMergeFields(),
+        onUpdate: (oldName, newName, index) => this.updateMergeField(oldName, newName, index),
+        onNavigate: (fieldName, index) => this.navigateToMergeField(fieldName, index),
+      },
+      {
+        onReadCC: () => this.readContentControlAtCursor(),
+        onUpdateCC: (index, newText) => this.updateContentControlText(index, newText),
+      },
     );
     this.templateToolbar.render();
 
@@ -393,6 +447,18 @@ export class LibreOfficeEditor {
           if (this._modifiedResolve) {
             this._modifiedResolve(isModified);
             this._modifiedResolve = null;
+          }
+        },
+        onMergeFieldsEnum: (fields) => {
+          if (this._mergeFieldsResolve) {
+            this._mergeFieldsResolve(fields);
+            this._mergeFieldsResolve = null;
+          }
+        },
+        onContentControlRead: (result) => {
+          if (this._ccReadResolve) {
+            this._ccReadResolve(result);
+            this._ccReadResolve = null;
           }
         },
       },

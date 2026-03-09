@@ -60,6 +60,13 @@ export interface EditorOptions {
   showTemplateToolbar?: boolean;
 }
 
+/** Information about a merge field in the document. */
+export interface MergeFieldInfo {
+  fieldName: string;
+  content: string;
+  index: number;
+}
+
 /** Map of events emitted by LibreOfficeEditor. */
 export interface EditorEventMap {
   /** WASM loaded, UI ready to accept commands. */
