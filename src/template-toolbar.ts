@@ -46,6 +46,7 @@ export class TemplateToolbar {
     // Data group
     const dataGroup = this.createGroup();
     dataGroup.appendChild(this.createButton('Content', 'Insert Content tag', () => this.handleContent(), 'ic_tag_content.svg'));
+    dataGroup.appendChild(this.createButton('Image', 'Insert Image tag', () => this.handleImage(), 'ic_tag_image.svg'));
     dataGroup.appendChild(this.createButton('Table', 'Insert Table tag', () => this.handleTable(), 'ic_tag_table.svg'));
     this.containerEl.appendChild(dataGroup);
 
@@ -106,6 +107,20 @@ export class TemplateToolbar {
     if (!result) return;
 
     let tag = `<Content Select="${result.select}"`;
+    if (result.optional === 'false') tag += ' Optional="false"';
+    tag += ' />';
+    this.onInsert(tag);
+  }
+
+  private async handleImage(): Promise<void> {
+    const fields: DialogField[] = [
+      { name: 'select', label: 'Select (XPath)', type: 'text', required: true, placeholder: 'e.g. Customer/Photo' },
+      { name: 'optional', label: 'Optional', type: 'checkbox', defaultValue: 'true' },
+    ];
+    const result = await TemplateDialog.show('Insert Image Tag', fields);
+    if (!result) return;
+
+    let tag = `<Image Select="${result.select}"`;
     if (result.optional === 'false') tag += ' Optional="false"';
     tag += ' />';
     this.onInsert(tag);
@@ -217,6 +232,19 @@ export class TemplateToolbar {
         const result = await TemplateDialog.show('Edit Content Tag', fields, 'Update');
         if (!result) return;
         let tag = `<Content Select="${result.select}"`;
+        if (result.optional === 'false') tag += ' Optional="false"';
+        tag += ' />';
+        this.ccCallbacks.onUpdateCC(cc.index, tag);
+        break;
+      }
+      case 'Image': {
+        const fields: DialogField[] = [
+          { name: 'select', label: 'Select (XPath)', type: 'text', required: true, placeholder: 'e.g. Customer/Photo', defaultValue: attrs['Select'] ?? '' },
+          { name: 'optional', label: 'Optional', type: 'checkbox', defaultValue: attrs['Optional'] !== 'false' ? 'true' : 'false' },
+        ];
+        const result = await TemplateDialog.show('Edit Image Tag', fields, 'Update');
+        if (!result) return;
+        let tag = `<Image Select="${result.select}"`;
         if (result.optional === 'false') tag += ' Optional="false"';
         tag += ' />';
         this.ccCallbacks.onUpdateCC(cc.index, tag);

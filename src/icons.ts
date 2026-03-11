@@ -43,6 +43,7 @@ import lc_undo from './images/lc_undo.svg?raw';
 
 // Template tag icons (blue accent)
 import ic_tag_content from './images/ic_tag_content.svg?raw';
+import ic_tag_image from './images/ic_tag_image.svg?raw';
 import ic_tag_table from './images/ic_tag_table.svg?raw';
 import ic_tag_repeat from './images/ic_tag_repeat.svg?raw';
 import ic_tag_if from './images/ic_tag_if.svg?raw';
@@ -97,6 +98,7 @@ export const ICONS: Record<string, string> = {
   'lc_undo.svg': lc_undo,
   // Template tag icons
   'ic_tag_content.svg': ic_tag_content,
+  'ic_tag_image.svg': ic_tag_image,
   'ic_tag_table.svg': ic_tag_table,
   'ic_tag_repeat.svg': ic_tag_repeat,
   'ic_tag_if.svg': ic_tag_if,
